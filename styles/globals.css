@@ -1,0 +1,313 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tema sistemi */
+body {
+  transition: all 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Aydınlık tema (varsayılan) */
+body {
+  background: linear-gradient(to bottom right, #faf5ff, #ffe4fa);
+  color: #222;
+}
+
+/* Karanlık tema */
+body.dark-mode {
+  background: linear-gradient(to bottom right, #111827, #1f2937) !important;
+  color: #ffffff !important;
+}
+
+/* Karanlık temada tüm elementler için */
+body.dark-mode * {
+  color: #ffffff !important;
+}
+
+/* Karanlık temada beyaz kartlar */
+body.dark-mode .bg-white {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+}
+
+/* Karanlık temada gri kartlar */
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+/* Karanlık temada border'lar */
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+  border-color: #4b5563 !important;
+}
+
+/* Karanlık temada text renkleri */
+body.dark-mode .text-gray-900 {
+  color: #ffffff !important;
+}
+
+body.dark-mode .text-gray-700 {
+  color: #d1d5db !important;
+}
+
+body.dark-mode .text-gray-600 {
+  color: #9ca3af !important;
+}
+
+body.dark-mode .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+/* Karanlık temada input'lar */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+/* Karanlık temada butonlar */
+body.dark-mode .bg-purple-600 {
+  background-color: #7c3aed !important;
+}
+
+body.dark-mode .hover\:bg-purple-700:hover {
+  background-color: #6d28d9 !important;
+}
+
+/* Karanlık temada sidebar */
+body.dark-mode .bg-white.border-r {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+/* Karanlık temada modal'lar */
+body.dark-mode .bg-white.rounded-xl {
+  background-color: #1f2937 !important;
+}
+
+/* Karanlık temada loading spinner */
+body.dark-mode .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+/* Karanlık temada gradient kartlar */
+body.dark-mode .bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #1f2937, #111827) !important;
+}
+
+/* Karanlık temada hover efektleri */
+body.dark-mode .hover\:bg-gray-100:hover {
+  background-color: #374151 !important;
+}
+
+body.dark-mode .hover\:bg-gray-50:hover {
+  background-color: #374151 !important;
+}
+
+/* Karanlık temada shadow'lar */
+body.dark-mode .shadow-sm,
+body.dark-mode .shadow-lg,
+body.dark-mode .shadow-xl {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Karanlık temada özel kartlar */
+body.dark-mode .bg-gradient-to-r.from-purple-100.to-pink-100 {
+  background: linear-gradient(to right, #1f2937, #111827) !important;
+}
+
+body.dark-mode .bg-gradient-to-r.from-purple-50.to-pink-50 {
+  background: linear-gradient(to right, #374151, #1f2937) !important;
+}
+
+body.dark-mode .bg-gradient-to-r.from-blue-50.to-purple-50 {
+  background: linear-gradient(to right, #374151, #1f2937) !important;
+}
+
+body.dark-mode .bg-gradient-to-r.from-yellow-50.to-orange-50 {
+  background: linear-gradient(to right, #374151, #1f2937) !important;
+}
+
+/* Karanlık temada renkli kartlar */
+body.dark-mode .bg-purple-50 {
+  background-color: #1f2937 !important;
+}
+
+body.dark-mode .bg-blue-50 {
+  background-color: #1f2937 !important;
+}
+
+body.dark-mode .bg-green-50 {
+  background-color: #1f2937 !important;
+}
+
+body.dark-mode .bg-yellow-50 {
+  background-color: #1f2937 !important;
+}
+
+body.dark-mode .bg-red-50 {
+  background-color: #1f2937 !important;
+}
+
+body.dark-mode .bg-indigo-50 {
+  background-color: #1f2937 !important;
+}
+
+/* Karanlık temada ana sayfa gradient */
+body.dark-mode .bg-gradient-to-br.from-purple-50.via-pink-50.to-blue-50 {
+  background: linear-gradient(to bottom right, #111827, #1f2937) !important;
+}
+
+/* Karanlık temada quiz sayfası gradient */
+body.dark-mode .bg-gradient-to-br.from-purple-50.to-pink-50 {
+  background: linear-gradient(to bottom right, #111827, #1f2937) !important;
+}
+
+/* Karanlık temada navbar */
+body.dark-mode .bg-white.shadow-sm {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+/* Karanlık temada dropdown menüler */
+body.dark-mode .bg-white.rounded-lg.shadow-xl {
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+}
+
+/* Karanlık temada form elementleri */
+body.dark-mode .bg-white.rounded-xl.shadow-lg {
+  background-color: #1f2937 !important;
+}
+
+/* Karanlık temada özel text renkleri */
+body.dark-mode .text-gray-900 {
+  color: #ffffff !important;
+}
+
+body.dark-mode .text-gray-800 {
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .text-gray-700 {
+  color: #d1d5db !important;
+}
+
+body.dark-mode .text-gray-600 {
+  color: #9ca3af !important;
+}
+
+body.dark-mode .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+body.dark-mode .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* Karanlık temada link renkleri */
+body.dark-mode .text-purple-600 {
+  color: #a855f7 !important;
+}
+
+body.dark-mode .text-blue-600 {
+  color: #3b82f6 !important;
+}
+
+body.dark-mode .text-green-600 {
+  color: #10b981 !important;
+}
+
+body.dark-mode .text-yellow-600 {
+  color: #f59e0b !important;
+}
+
+body.dark-mode .text-red-600 {
+  color: #ef4444 !important;
+}
+
+/* Karanlık temada hover link renkleri */
+body.dark-mode .hover\:text-purple-700:hover {
+  color: #9333ea !important;
+}
+
+body.dark-mode .hover\:text-blue-700:hover {
+  color: #2563eb !important;
+}
+
+/* Karanlık temada border renkleri */
+body.dark-mode .border-gray-200 {
+  border-color: #4b5563 !important;
+}
+
+body.dark-mode .border-gray-300 {
+  border-color: #6b7280 !important;
+}
+
+body.dark-mode .border-purple-600 {
+  border-color: #7c3aed !important;
+}
+
+/* Karanlık temada focus ring */
+body.dark-mode .focus\:ring-purple-500:focus {
+  --tw-ring-color: #8b5cf6 !important;
+}
+
+body.dark-mode .focus\:border-transparent:focus {
+  border-color: transparent !important;
+}
+
+/* CSS Custom Properties for Theme */
+:root {
+  --bg-primary: linear-gradient(to bottom right, #faf5ff, #ffe4fa);
+  --text-primary: #222222;
+  --bg-secondary: #ffffff;
+  --text-secondary: #6b7280;
+}
+
+/* Dark mode variables */
+[data-theme="dark"] {
+  --bg-primary: linear-gradient(to bottom right, #111827, #1f2937);
+  --text-primary: #ffffff;
+  --bg-secondary: #1f2937;
+  --text-secondary: #d1d5db;
+}
+
+/* Theme utility classes */
+@layer utilities {
+  .theme-classic {}
+  .theme-blue {}
+  .theme-dark {}
+  .theme-gray {}
+  .theme-rainbow {}
+}
+
+body.theme-classic {
+  background: linear-gradient(to bottom right, #faf5ff, #ffe4fa) !important;
+  color: #222 !important;
+}
+
+body.theme-blue {
+  background: linear-gradient(to bottom right, #1e40af, #1e3a8a) !important;
+  color: #ffffff !important;
+}
+
+body.theme-dark {
+  background: linear-gradient(to bottom right, #000000, #1f2937) !important;
+  color: #ffffff !important;
+}
+
+body.theme-gray {
+  background: linear-gradient(to bottom right, #4b5563, #6b7280) !important;
+  color: #ffffff !important;
+}
+
+body.theme-rainbow {
+  background: linear-gradient(90deg, #dc2626 0%, #fbbf24 50%, #3b82f6 100%) !important;
+  color: #ffffff !important;
+}
