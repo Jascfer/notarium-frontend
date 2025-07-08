@@ -28,7 +28,7 @@ export default function Login() {
 
   // Google OAuth işlevselliği
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notarium-backend-production.up.railway.app'}/auth/google`;
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/auth/google`;
   };
 
   // Simüle edilmiş Google giriş (gerçek OAuth için değiştirilecek)

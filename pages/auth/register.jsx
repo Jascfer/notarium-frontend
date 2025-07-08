@@ -20,7 +20,7 @@ export default function Register() {
 
   // Google OAuth işlevselliği
   const handleGoogleRegister = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notarium-backend-production.up.railway.app'}/auth/google`;
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/auth/google`;
   };
 
   const validateForm = () => {
