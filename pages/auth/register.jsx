@@ -20,7 +20,7 @@ export default function Register() {
 
   // Google OAuth işlevselliği
   const handleGoogleRegister = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'}/auth/google`;
+    window.location.href = `/auth/google`;
   };
 
   const validateForm = () => {
