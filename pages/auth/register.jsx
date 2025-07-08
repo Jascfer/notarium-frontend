@@ -19,30 +19,8 @@ export default function Register() {
   const { registerUser } = useAuth();
 
   // Google OAuth işlevselliği
-  const handleGoogleRegister = async () => {
-    setIsGoogleLoading(true);
-    
-    try {
-      // Simüle edilmiş Google kullanıcı verisi
-      setTimeout(() => {
-        const googleUserData = {
-          id: Math.floor(Math.random() * 10000),
-          name: 'Google Kullanıcı',
-          email: 'googleuser@gmail.com',
-          avatar: '👨‍💻',
-          provider: 'google',
-          joinDate: new Date().toISOString()
-        };
-        
-        registerUser(googleUserData);
-        setIsGoogleLoading(false);
-        router.push('/profile');
-      }, 2000);
-      
-    } catch (error) {
-      console.error('Google register error:', error);
-      setIsGoogleLoading(false);
-    }
+  const handleGoogleRegister = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notarium-backend-production.up.railway.app'}/auth/google`;
   };
 
   const validateForm = () => {
@@ -81,19 +59,19 @@ export default function Register() {
 
     setIsLoading(true);
     
-    // Simüle edilmiş kayıt işlemi
-    setTimeout(() => {
-      // Başarılı kayıt simülasyonu
-      const userData = {
-        id: Date.now(),
-        name: formData.name,
-        email: formData.email,
-        avatar: '👨‍🎓'
-      };
-      registerUser(userData);
-      setIsLoading(false);
+    // API tabanlı kayıt
+    const result = await registerUser({
+      firstName: formData.name.split(' ')[0],
+      lastName: formData.name.split(' ').slice(1).join(' '),
+      email: formData.email,
+      password: formData.password
+    });
+    setIsLoading(false);
+    if (result.success) {
       router.push('/profile');
-    }, 2000);
+    } else {
+      setErrors({ ...errors, general: result.error || 'Kayıt başarısız' });
+    }
   };
 
   const handleInputChange = (e) => {

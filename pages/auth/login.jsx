@@ -27,58 +27,8 @@ export default function Login() {
   const { login } = useAuth();
 
   // Google OAuth işlevselliği
-  const handleGoogleLogin = async () => {
-    setIsGoogleLoading(true);
-    setError('');
-    
-    try {
-      // Google OAuth popup'ını aç
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'your-google-client-id'}&` +
-        `redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google-callback')}&` +
-        `response_type=code&` +
-        `scope=openid email profile&` +
-        `access_type=offline&` +
-        `prompt=consent`;
-      
-      const popup = window.open(googleAuthUrl, 'googleAuth', 
-        'width=500,height=600,scrollbars=yes,resizable=yes');
-      
-      // Popup mesajlarını dinle
-      const handleMessage = (event) => {
-        if (event.origin !== window.location.origin) return;
-        
-        if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
-          const userData = event.data.user;
-          login(userData);
-          setIsGoogleLoading(false);
-          router.push('/profile');
-          popup.close();
-          window.removeEventListener('message', handleMessage);
-        } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
-          setError('Google ile giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.');
-          setIsGoogleLoading(false);
-          popup.close();
-          window.removeEventListener('message', handleMessage);
-        }
-      };
-      
-      window.addEventListener('message', handleMessage);
-      
-      // Popup kapandığında loading'i durdur
-      const checkClosed = setInterval(() => {
-        if (popup.closed) {
-          setIsGoogleLoading(false);
-          clearInterval(checkClosed);
-          window.removeEventListener('message', handleMessage);
-        }
-      }, 1000);
-      
-    } catch (error) {
-      console.error('Google login error:', error);
-      setError('Google ile giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.');
-      setIsGoogleLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notarium-backend-production.up.railway.app'}/auth/google`;
   };
 
   // Simüle edilmiş Google giriş (gerçek OAuth için değiştirilecek)
@@ -114,27 +64,14 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
-    // Gerçek kullanıcı kontrolü
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-      const foundUser = users.find(u => u.email === formData.email);
-      if (!foundUser) {
-        setError('Bu e-posta ile kayıtlı bir kullanıcı bulunamadı.');
-        setIsLoading(false);
-        return;
-      }
-      // Şifre kontrolü (demo: şifreyi user objesine kaydettiyseniz kontrol edin)
-      if (foundUser.password && foundUser.password !== formData.password) {
-        setError('Şifre yanlış.');
-        setIsLoading(false);
-        return;
-      }
-      // Giriş başarılı
-      login(foundUser);
-      setIsLoading(false);
+    // API tabanlı login
+    const result = await login(formData.email, formData.password);
+    setIsLoading(false);
+    if (result.success) {
       router.push('/profile');
-    }, 1000);
+    } else {
+      setError(result.error || 'Giriş başarısız');
+    }
   };
 
   const handleInputChange = (e) => {
