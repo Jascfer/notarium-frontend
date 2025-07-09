@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { io } from 'socket.io-client';
 import { useTheme } from '../contexts/ThemeContext';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
+const SOCKET_URL = 'http://localhost:4000';
 let socket;
 
 export default function Chat() {

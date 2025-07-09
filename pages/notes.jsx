@@ -5,8 +5,6 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function Notes() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin' || user?.role === 'founder';
@@ -16,7 +14,7 @@ export default function Notes() {
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedSort, setSelectedSort] = useState('newest');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newNote, setNewNote] = useState({ title: '', content: '', subject: 'all', description: '', tags: '', driveLink: '' });
+  const [newNote, setNewNote] = useState({ title: '', subject: 'all', description: '', tags: '', driveLink: '' });
   const [addError, setAddError] = useState('');
   const [userLikes, setUserLikes] = useState([]);
   const SUBJECTS_KEY = 'site_note_subjects_v1';
@@ -54,38 +52,36 @@ export default function Notes() {
   const [newCategory, setNewCategory] = useState('');
   const [catError, setCatError] = useState('');
 
+  const NOTES_KEY = 'site_notes_v1';
+  const LIKES_KEY = user ? `site_notes_likes_${user.id}` : null;
+
   const { isDarkMode } = useTheme();
 
-  // --- Notları API'den çek ---
   useEffect(() => {
-    async function fetchNotes() {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`${API_URL}/api/notes`);
-        const data = await res.json();
-        setNotes(data);
-      } catch (err) {
-        setNotes([]);
-      }
-      setIsLoading(false);
-    }
-    fetchNotes();
+    // Notları localStorage'dan yükle (sadece ilk mount)
+    const storedNotes = localStorage.getItem(NOTES_KEY);
+    setNotes(storedNotes ? JSON.parse(storedNotes) : []);
+    setIsLoading(false);
   }, []);
 
   // Kullanıcı beğenilerini yükle (user değişince)
   useEffect(() => {
-    if (user?._id) {
-      const storedLikes = localStorage.getItem(`site_notes_likes_${user._id}`);
+    if (LIKES_KEY) {
+      const storedLikes = localStorage.getItem(LIKES_KEY);
       setUserLikes(storedLikes ? JSON.parse(storedLikes) : []);
     }
-  }, [user?._id]);
+  }, [LIKES_KEY]);
 
   // Notlar değişince localStorage'a kaydet
   useEffect(() => {
-    if (user?._id) {
-      localStorage.setItem(`site_notes_likes_${user._id}`, JSON.stringify(userLikes));
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+  }, [notes]);
+  // Kullanıcı beğenileri değişince kaydet
+  useEffect(() => {
+    if (LIKES_KEY) {
+      localStorage.setItem(LIKES_KEY, JSON.stringify(userLikes));
     }
-  }, [userLikes, user?._id]);
+  }, [userLikes, LIKES_KEY]);
 
   // Kategorileri localStorage'dan yükle
   useEffect(() => {
@@ -129,7 +125,7 @@ export default function Notes() {
       setNotes(prevNotes => {
         // Sadece ekranda görünen notların views'unu artır
         const updated = prevNotes.map(note => {
-          if (sortedNotes.some(n => n._id === note._id)) {
+          if (sortedNotes.some(n => n.id === note.id)) {
             // Sadece bir kez artırmak için, bir flag ekleyelim (ör: _viewed)
             if (!note._viewed) {
               return { ...note, views: (note.views || 0) + 1, _viewed: true };
@@ -141,14 +137,14 @@ export default function Notes() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, sortedNotes.map(n => n._id).join(",")]);
+  }, [isLoading, sortedNotes.map(n => n.id).join(",")]);
 
   const handleDownload = (noteId) => {
     setNotes(prevNotes => prevNotes.map(note =>
-      note._id === noteId ? { ...note, downloads: (note.downloads || 0) + 1 } : note
+      note.id === noteId ? { ...note, downloads: (note.downloads || 0) + 1 } : note
     ));
     // Simüle edilmiş indirme
-    alert(`"${notes.find(n => n._id === noteId)?.title}" indiriliyor...`);
+    alert(`"${notes.find(n => n.id === noteId)?.title}" indiriliyor...`);
   };
 
   const handleLike = (noteId) => {
@@ -156,50 +152,45 @@ export default function Notes() {
     if (userLikes.includes(noteId)) {
       // Unlike
       setUserLikes(prev => prev.filter(id => id !== noteId));
-      setNotes(prev => prev.map(note => note._id === noteId ? { ...note, likes: Math.max(0, note.likes - 1) } : note));
+      setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: Math.max(0, note.likes - 1) } : note));
     } else {
       // Like
       setUserLikes(prev => [...prev, noteId]);
-      setNotes(prev => prev.map(note => note._id === noteId ? { ...note, likes: note.likes + 1 } : note));
+      setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: note.likes + 1 } : note));
     }
   };
 
-  // Not ekle (API)
-  const handleAddNote = async () => {
-    if (!newNote.title.trim() || !newNote.content?.trim() || newNote.subject === 'all') {
-      setAddError('Başlık, içerik ve ders seçimi zorunlu!');
+  // Not ekle
+  const handleAddNote = () => {
+    if (!newNote.title.trim() || !newNote.description.trim() || newNote.subject === 'all') {
+      setAddError('Başlık, açıklama ve ders seçimi zorunlu!');
       return;
     }
-    try {
-      const res = await fetch(`${API_URL}/api/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newNote.title,
-          content: newNote.content,
-          author: user?._id // MongoDB ObjectId
-        })
-      });
-      if (!res.ok) throw new Error('Not eklenemedi');
-      const added = await res.json();
-      setNotes(prev => [added, ...prev]);
-      setShowAddModal(false);
-      setNewNote({ title: '', content: '', subject: 'all', description: '', tags: '', driveLink: '' });
-      setAddError('');
-    } catch (err) {
-      setAddError('Not eklenemedi.');
-    }
+    setNotes(prev => [
+      {
+        id: Date.now(),
+        title: newNote.title,
+        subject: newNote.subject,
+        author: user?.name || 'Admin',
+        date: new Date().toISOString().slice(0, 10),
+        downloads: 0,
+        views: 0,
+        likes: 0,
+        description: newNote.description,
+        tags: newNote.tags.split(',').map(t => t.trim()).filter(Boolean),
+        driveLink: newNote.driveLink?.trim() || ''
+      },
+      ...prev
+    ]);
+    setShowAddModal(false);
+    setNewNote({ title: '', subject: 'all', description: '', tags: '', driveLink: '' });
+    setAddError('');
   };
 
-  // Not sil (API)
-  const handleDeleteNote = async (noteId) => {
-    if (!window.confirm('Bu notu silmek istediğinize emin misiniz?')) return;
-    try {
-      const res = await fetch(`${API_URL}/api/notes/${noteId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Not silinemedi');
-      setNotes(prev => prev.filter(note => note._id !== noteId));
-    } catch (err) {
-      alert('Not silinemedi.');
+  // Not sil
+  const handleDeleteNote = (noteId) => {
+    if (window.confirm('Bu notu silmek istediğinize emin misiniz?')) {
+      setNotes(prev => prev.filter(note => note.id !== noteId));
     }
   };
 
@@ -397,7 +388,7 @@ export default function Notes() {
           {/* Notes Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedNotes.map((note) => (
-              <div key={note._id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div key={note.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div className="p-6">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -408,7 +399,7 @@ export default function Notes() {
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span className="flex items-center">
                           <User className="h-4 w-4 mr-1" />
-                          {note.author?.name || 'Admin'}
+                          {note.author}
                         </span>
                         <span className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1" />
@@ -464,7 +455,7 @@ export default function Notes() {
                           e.preventDefault();
                           window.open(note.driveLink, '_blank');
                         } else {
-                          handleDownload(note._id);
+                          handleDownload(note.id);
                         }
                       }}
                       className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
@@ -473,15 +464,15 @@ export default function Notes() {
                       İndir
                     </button>
                     <button
-                      onClick={() => handleLike(note._id)}
-                      className={`px-4 py-2 border ${userLikes.includes(note._id) ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-300 text-gray-700'} rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center`}
-                      title={userLikes.includes(note._id) ? 'Beğenmekten vazgeç' : 'Beğen'}
+                      onClick={() => handleLike(note.id)}
+                      className={`px-4 py-2 border ${userLikes.includes(note.id) ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-300 text-gray-700'} rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center`}
+                      title={userLikes.includes(note.id) ? 'Beğenmekten vazgeç' : 'Beğen'}
                     >
-                      <Heart className={`h-4 w-4 ${userLikes.includes(note._id) ? 'fill-red-500 text-red-600' : ''}`} />
+                      <Heart className={`h-4 w-4 ${userLikes.includes(note.id) ? 'fill-red-500 text-red-600' : ''}`} />
                     </button>
                     {isAdmin && (
                       <button
-                        onClick={() => handleDeleteNote(note._id)}
+                        onClick={() => handleDeleteNote(note.id)}
                         className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors duration-200 flex items-center"
                         title="Notu Sil"
                       >

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,18 +16,33 @@ export default function Register() {
   });
   const [errors, setErrors] = useState({});
   const router = useRouter();
-  const { registerUser, isAuthenticated } = useAuth();
-
-  // Kullanıcı zaten giriş yaptıysa profile yönlendir
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/profile');
-    }
-  }, [isAuthenticated, router]);
+  const { registerUser } = useAuth();
 
   // Google OAuth işlevselliği
-  const handleGoogleRegister = () => {
-    window.location.href = `/auth/google`;
+  const handleGoogleRegister = async () => {
+    setIsGoogleLoading(true);
+    
+    try {
+      // Simüle edilmiş Google kullanıcı verisi
+      setTimeout(() => {
+        const googleUserData = {
+          id: Math.floor(Math.random() * 10000),
+          name: 'Google Kullanıcı',
+          email: 'googleuser@gmail.com',
+          avatar: '👨‍💻',
+          provider: 'google',
+          joinDate: new Date().toISOString()
+        };
+        
+        registerUser(googleUserData);
+        setIsGoogleLoading(false);
+        router.push('/profile');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Google register error:', error);
+      setIsGoogleLoading(false);
+    }
   };
 
   const validateForm = () => {
@@ -66,19 +81,19 @@ export default function Register() {
 
     setIsLoading(true);
     
-    // API tabanlı kayıt
-    const result = await registerUser({
-      firstName: formData.name.split(' ')[0],
-      lastName: formData.name.split(' ').slice(1).join(' '),
-      email: formData.email,
-      password: formData.password
-    });
-    setIsLoading(false);
-    if (result.success) {
+    // Simüle edilmiş kayıt işlemi
+    setTimeout(() => {
+      // Başarılı kayıt simülasyonu
+      const userData = {
+        id: Date.now(),
+        name: formData.name,
+        email: formData.email,
+        avatar: '👨‍🎓'
+      };
+      registerUser(userData);
+      setIsLoading(false);
       router.push('/profile');
-    } else {
-      setErrors({ ...errors, general: result.error || 'Kayıt başarısız' });
-    }
+    }, 2000);
   };
 
   const handleInputChange = (e) => {
