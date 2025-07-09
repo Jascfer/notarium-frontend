@@ -9,7 +9,8 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -48,8 +49,12 @@ export default function Register() {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Ad soyad gereklidir';
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Ad gereklidir';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Soyad gereklidir';
     }
 
     if (!formData.email.trim()) {
@@ -81,19 +86,21 @@ export default function Register() {
 
     setIsLoading(true);
     
-    // Simüle edilmiş kayıt işlemi
-    setTimeout(() => {
-      // Başarılı kayıt simülasyonu
-      const userData = {
-        id: Date.now(),
-        name: formData.name,
-        email: formData.email,
-        avatar: '👨‍🎓'
-      };
-      registerUser(userData);
-      setIsLoading(false);
-      router.push('/profile');
-    }, 2000);
+    const payload = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password
+    };
+    // API çağrısı
+    await fetch('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'include'
+    });
+    setIsLoading(false);
+    router.push('/profile');
   };
 
   const handleInputChange = (e) => {
@@ -126,30 +133,52 @@ export default function Register() {
         {/* Register Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
+            {/* First Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Ad Soyad
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                Ad
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="name"
-                  name="name"
+                  id="firstName"
+                  name="firstName"
                   type="text"
                   required
-                  value={formData.name}
+                  value={formData.firstName}
                   onChange={handleInputChange}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${
-                    errors.name ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Adınız Soyadınız"
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${errors.firstName ? 'border-red-300' : 'border-gray-300'}`}
+                  placeholder="Adınız"
                 />
               </div>
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              {errors.firstName && (
+                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+              )}
+            </div>
+            {/* Last Name */}
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                Soyad
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200 ${errors.lastName ? 'border-red-300' : 'border-gray-300'}`}
+                  placeholder="Soyadınız"
+                />
+              </div>
+              {errors.lastName && (
+                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
               )}
             </div>
 
