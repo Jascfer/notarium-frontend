@@ -137,6 +137,12 @@ export default function Login() {
 
       // Başarılı login
       login(data.user);
+      
+      // Session ID'yi localStorage'a kaydet
+      if (data.sessionId) {
+        localStorage.setItem('sessionId', data.sessionId);
+      }
+      
       setIsLoading(false);
       router.push('/profile');
     } catch (err) {
