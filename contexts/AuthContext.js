@@ -1,7 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
-const API_URL = 'https://notarium.tr';
+// Tüm fetch isteklerinde sadece path kullan:
+// fetch(`${API_URL}/auth/login`, ...) yerine:
+// fetch('/auth/login', ...)
+//
+// Google ile girişle ilgili kodları ve fonksiyonları kaldır.
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -11,7 +15,7 @@ export function AuthProvider({ children }) {
     // Oturum bilgisini backend'den kontrol et (isteğe bağlı, örn. /auth/me)
     async function fetchUser() {
       try {
-        const res = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });
+        const res = await fetch(`/auth/me`, { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
@@ -29,7 +33,7 @@ export function AuthProvider({ children }) {
   // Kayıt
   const registerUser = async (userData) => {
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
+      const res = await fetch(`/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
@@ -47,7 +51,7 @@ export function AuthProvider({ children }) {
   // Giriş
   const login = async (email, password) => {
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -64,14 +68,14 @@ export function AuthProvider({ children }) {
 
   // Çıkış
   const logout = async () => {
-    await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+    await fetch(`/auth/logout`, { method: 'POST', credentials: 'include' });
     setUser(null);
   };
 
   // Kullanıcı güncelleme (isteğe bağlı, backend endpointine göre)
   const updateUser = async (updatedUserData) => {
     try {
-      const res = await fetch(`${API_URL}/auth/update`, {
+      const res = await fetch(`/auth/update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedUserData),
@@ -89,7 +93,7 @@ export function AuthProvider({ children }) {
   // Admin yetkisi verme/geri alma (isteğe bağlı, backend endpointine göre)
   const setUserRole = async (userId, newRole) => {
     try {
-      const res = await fetch(`${API_URL}/auth/set-role`, {
+      const res = await fetch(`/auth/set-role`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, role: newRole }),
