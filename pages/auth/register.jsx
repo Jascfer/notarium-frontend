@@ -19,6 +19,8 @@ export default function Register() {
   const router = useRouter();
   const { registerUser } = useAuth();
 
+  const API_URL = 'https://notarium-backend-production.up.railway.app';
+
   // Google OAuth işlevselliği
   const handleGoogleRegister = async () => {
     setIsGoogleLoading(true);
@@ -93,7 +95,7 @@ export default function Register() {
       password: formData.password
     };
     // API çağrısı
-    await fetch('/auth/register', {
+    await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
