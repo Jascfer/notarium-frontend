@@ -6,7 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { io } from 'socket.io-client';
 import { useTheme } from '../contexts/ThemeContext';
 
-const SOCKET_URL = 'http://localhost:4000';
+const API_URL = 'https://notarium-backend-production.up.railway.app';
+const SOCKET_URL = 'https://notarium-backend-production.up.railway.app';
 let socket;
 
 export default function Chat() {
@@ -30,14 +31,11 @@ export default function Chat() {
     { id: 'etkinlik-duyurular', name: 'Etkinlik Duyuruları', icon: '📢', color: 'orange' }
   ];
 
-  const MUTE_KEY = user ? `site_chat_mute_${user.id}` : null;
-
   useEffect(() => {
     if (!user) return;
     if (!socket) {
       socket = io(SOCKET_URL);
     }
-    // Kullanıcı bilgisini sunucuya gönder
     socket.emit('userOnline', {
       id: user.id,
       name: user.name,
@@ -45,11 +43,9 @@ export default function Chat() {
       role: user.role || 'user',
       status: 'online'
     });
-    // Online kullanıcı listesini dinle
     socket.on('onlineUsers', (users) => {
       setOnlineUsers(users);
     });
-    
     return () => {
       socket.off('onlineUsers');
     };
@@ -78,7 +74,6 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Ban/kick olaylarını dinle
   useEffect(() => {
     if (!socket) return;
     const handleBanned = () => {
@@ -132,12 +127,10 @@ export default function Chat() {
     e.preventDefault();
     if (muteUntil > Date.now()) return;
     if (newMessage.trim() && user) {
-      // Spam kontrolü
       const now = Date.now();
       if (checkSpam()) return;
-      // Küfür kontrolü
       if (checkBadWords(newMessage)) {
-        setMuteUntil(now + 120000); // 2 dk mute
+        setMuteUntil(now + 120000);
         setMuteReason('Küfür nedeniyle geçici olarak susturuldunuz.');
         return;
       }
@@ -204,7 +197,7 @@ export default function Chat() {
 
   useEffect(() => {
     // Mesajlar değiştikçe localStorage'a kaydet
-    localStorage.setItem('site_chat_messages', JSON.stringify(messages));
+    // localStorage.setItem('site_chat_messages', JSON.stringify(messages)); // Bu satır kaldırıldı
   }, [messages]);
 
   useEffect(() => {
@@ -226,29 +219,29 @@ export default function Chat() {
   }, [muteUntil]);
 
   // Mute bilgisini localStorage'dan yükle
-  useEffect(() => {
-    if (MUTE_KEY) {
-      const muteData = localStorage.getItem(MUTE_KEY);
-      if (muteData) {
-        const { until, reason } = JSON.parse(muteData);
-        if (until > Date.now()) {
-          setMuteUntil(until);
-          setMuteReason(reason);
-        } else {
-          localStorage.removeItem(MUTE_KEY);
-        }
-      }
-    }
-  }, [MUTE_KEY]);
+  // useEffect(() => {
+  //   if (MUTE_KEY) {
+  //     const muteData = localStorage.getItem(MUTE_KEY);
+  //     if (muteData) {
+  //       const { until, reason } = JSON.parse(muteData);
+  //       if (until > Date.now()) {
+  //         setMuteUntil(until);
+  //         setMuteReason(reason);
+  //       } else {
+  //         localStorage.removeItem(MUTE_KEY);
+  //       }
+  //     }
+  //   }
+  // }, [MUTE_KEY]);
 
   // Mute başlatıldığında localStorage'a yaz
-  useEffect(() => {
-    if (muteUntil > Date.now() && MUTE_KEY) {
-      localStorage.setItem(MUTE_KEY, JSON.stringify({ until: muteUntil, reason: muteReason }));
-    } else if (MUTE_KEY) {
-      localStorage.removeItem(MUTE_KEY);
-    }
-  }, [muteUntil, muteReason, MUTE_KEY]);
+  // useEffect(() => {
+  //   if (muteUntil > Date.now() && MUTE_KEY) {
+  //     localStorage.setItem(MUTE_KEY, JSON.stringify({ until: muteUntil, reason: muteReason }));
+  //   } else if (MUTE_KEY) {
+  //     localStorage.removeItem(MUTE_KEY);
+  //   }
+  // }, [muteUntil, muteReason, MUTE_KEY]);
 
   if (isLoading) {
     return <LoadingSpinner text="Sohbet yükleniyor..." />;

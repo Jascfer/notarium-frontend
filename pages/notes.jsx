@@ -5,6 +5,8 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
+const API_URL = 'https://notarium-backend-production.up.railway.app';
+
 export default function Notes() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin' || user?.role === 'founder';
@@ -52,36 +54,43 @@ export default function Notes() {
   const [newCategory, setNewCategory] = useState('');
   const [catError, setCatError] = useState('');
 
-  const NOTES_KEY = 'site_notes_v1';
-  const LIKES_KEY = user ? `site_notes_likes_${user.id}` : null;
-
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    // Notları localStorage'dan yükle (sadece ilk mount)
-    const storedNotes = localStorage.getItem(NOTES_KEY);
-    setNotes(storedNotes ? JSON.parse(storedNotes) : []);
-    setIsLoading(false);
+    async function fetchNotes() {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/api/notes`);
+        const data = await res.json();
+        setNotes(data);
+      } catch (err) {
+        setNotes([]);
+      }
+      setIsLoading(false);
+    }
+    fetchNotes();
   }, []);
 
   // Kullanıcı beğenilerini yükle (user değişince)
   useEffect(() => {
-    if (LIKES_KEY) {
-      const storedLikes = localStorage.getItem(LIKES_KEY);
+    if (user?.id) {
+      const storedLikes = localStorage.getItem(`site_notes_likes_${user.id}`);
       setUserLikes(storedLikes ? JSON.parse(storedLikes) : []);
     }
-  }, [LIKES_KEY]);
+  }, [user?.id]);
 
   // Notlar değişince localStorage'a kaydet
   useEffect(() => {
-    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
-  }, [notes]);
+    if (user?.id) {
+      localStorage.setItem(`site_notes_v1`, JSON.stringify(notes));
+    }
+  }, [notes, user?.id]);
   // Kullanıcı beğenileri değişince kaydet
   useEffect(() => {
-    if (LIKES_KEY) {
-      localStorage.setItem(LIKES_KEY, JSON.stringify(userLikes));
+    if (user?.id) {
+      localStorage.setItem(`site_notes_likes_${user.id}`, JSON.stringify(userLikes));
     }
-  }, [userLikes, LIKES_KEY]);
+  }, [userLikes, user?.id]);
 
   // Kategorileri localStorage'dan yükle
   useEffect(() => {
@@ -139,58 +148,81 @@ export default function Notes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, sortedNotes.map(n => n.id).join(",")]);
 
-  const handleDownload = (noteId) => {
-    setNotes(prevNotes => prevNotes.map(note =>
-      note.id === noteId ? { ...note, downloads: (note.downloads || 0) + 1 } : note
-    ));
-    // Simüle edilmiş indirme
-    alert(`"${notes.find(n => n.id === noteId)?.title}" indiriliyor...`);
+  const handleDownload = async (noteId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/notes/${noteId}/download`);
+      if (!res.ok) throw new Error('İndirme başarısız');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${notes.find(n => n.id === noteId)?.title || 'not'}.pdf`; // PDF varsayımı
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('İndirme başarısız.');
+    }
   };
 
-  const handleLike = (noteId) => {
+  const handleLike = async (noteId) => {
     if (!user) return;
     if (userLikes.includes(noteId)) {
       // Unlike
       setUserLikes(prev => prev.filter(id => id !== noteId));
-      setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: Math.max(0, note.likes - 1) } : note));
+      try {
+        const res = await fetch(`${API_URL}/api/notes/${noteId}/unlike`, { method: 'POST' });
+        if (!res.ok) throw new Error('Beğeni kaldırılamadı');
+        setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: Math.max(0, note.likes - 1) } : note));
+      } catch (err) {
+        alert('Beğeni kaldırılamadı.');
+      }
     } else {
       // Like
       setUserLikes(prev => [...prev, noteId]);
-      setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: note.likes + 1 } : note));
+      try {
+        const res = await fetch(`${API_URL}/api/notes/${noteId}/like`, { method: 'POST' });
+        if (!res.ok) throw new Error('Beğeni eklenemedi');
+        setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: note.likes + 1 } : note));
+      } catch (err) {
+        alert('Beğeni eklenemedi.');
+      }
     }
   };
 
   // Not ekle
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!newNote.title.trim() || !newNote.description.trim() || newNote.subject === 'all') {
       setAddError('Başlık, açıklama ve ders seçimi zorunlu!');
       return;
     }
-    setNotes(prev => [
-      {
-        id: Date.now(),
-        title: newNote.title,
-        subject: newNote.subject,
-        author: user?.name || 'Admin',
-        date: new Date().toISOString().slice(0, 10),
-        downloads: 0,
-        views: 0,
-        likes: 0,
-        description: newNote.description,
-        tags: newNote.tags.split(',').map(t => t.trim()).filter(Boolean),
-        driveLink: newNote.driveLink?.trim() || ''
-      },
-      ...prev
-    ]);
-    setShowAddModal(false);
-    setNewNote({ title: '', subject: 'all', description: '', tags: '', driveLink: '' });
-    setAddError('');
+    try {
+      const res = await fetch(`${API_URL}/api/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newNote, author: user?.id }),
+      });
+      if (!res.ok) throw new Error('Not eklenemedi');
+      const added = await res.json();
+      setNotes(prev => [added, ...prev]);
+      setShowAddModal(false);
+      setNewNote({ title: '', subject: 'all', description: '', tags: '', driveLink: '' });
+      setAddError('');
+    } catch (err) {
+      setAddError('Not eklenemedi.');
+    }
   };
 
   // Not sil
-  const handleDeleteNote = (noteId) => {
-    if (window.confirm('Bu notu silmek istediğinize emin misiniz?')) {
+  const handleDeleteNote = async (noteId) => {
+    if (!window.confirm('Bu notu silmek istediğinize emin misiniz?')) return;
+    try {
+      const res = await fetch(`${API_URL}/api/notes/${noteId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Not silinemedi');
       setNotes(prev => prev.filter(note => note.id !== noteId));
+    } catch (err) {
+      alert('Not silinemedi.');
     }
   };
 

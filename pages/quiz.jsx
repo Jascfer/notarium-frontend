@@ -5,28 +5,13 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-function getTodayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getDailyQuestions(allQuestions, count = 5) {
-  // Her gün için aynı soruları seçmek için günün tarihini seed olarak kullan
-  const today = getTodayKey();
-  let seed = today.split('-').join('');
-  let arr = [...allQuestions];
-  // Basit bir seed shuffle
-  for (let i = arr.length - 1; i > 0; i--) {
-    seed = ((parseInt(seed) * 9301 + 49297) % 233280).toString();
-    const j = parseInt(seed) % (i + 1);
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr.slice(0, count);
-}
+const API_URL = 'https://notarium-backend-production.up.railway.app';
 
 export default function Quiz() {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const { isDarkMode } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
+  const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
@@ -35,36 +20,20 @@ export default function Quiz() {
   const [alreadySolved, setAlreadySolved] = useState(false);
   const [showDoneMsg, setShowDoneMsg] = useState(false);
 
-  // Tüm soru havuzu
-  const allQuestions = [
-    { id: 1, question: "Türkiye'nin başkenti neresidir?", options: ["İstanbul", "Ankara", "İzmir", "Bursa"], correctAnswer: 1 },
-    { id: 2, question: "Hangi gezegen Güneş'e en yakındır?", options: ["Mars", "Venüs", "Merkür", "Dünya"], correctAnswer: 2 },
-    { id: 3, question: "2 + 2 × 3 = ?", options: ["8", "10", "12", "6"], correctAnswer: 0 },
-    { id: 4, question: "Hangi element periyodik tabloda 'Fe' sembolü ile gösterilir?", options: ["Flor", "Demir", "Fosfor", "Fermiyum"], correctAnswer: 1 },
-    { id: 5, question: "Hangi yıl Türkiye Cumhuriyeti kurulmuştur?", options: ["1920", "1921", "1922", "1923"], correctAnswer: 3 },
-    { id: 6, question: "En uzun nehir hangisidir?", options: ["Amazon", "Nil", "Kongo", "Mississippi"], correctAnswer: 1 },
-    { id: 7, question: "Dünyanın en büyük okyanusu?", options: ["Hint", "Atlas", "Arktik", "Pasifik"], correctAnswer: 3 },
-    { id: 8, question: "İstanbul'u ikiye bölen boğaz?", options: ["Çanakkale", "Bosphorus", "Yavuz Sultan Selim", "Fatih Sultan Mehmet"], correctAnswer: 1 },
-    { id: 9, question: "En küçük asal sayı?", options: ["1", "2", "3", "5"], correctAnswer: 1 },
-    { id: 10, question: "DNA'nın açılımı nedir?", options: ["Deoksiribonükleik Asit", "Dinamik Nükleik Asit", "Dizilimli Nükleik Asit", "Dijital Nükleik Asit"], correctAnswer: 0 },
-  ];
-
-  const questions = getDailyQuestions(allQuestions, 5);
-  const todayKey = getTodayKey();
-
   useEffect(() => {
-    // Quiz çözülmüş mü kontrolü
-    if (user && user.quizLastSolved === todayKey) {
-      setAlreadySolved(true);
+    async function fetchQuiz() {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/quiz`);
+        const data = await res.json();
+        setQuestions(data[0]?.questions || []);
+      } catch (err) {
+        setQuestions([]);
+      }
       setIsLoading(false);
-      return;
     }
-    // Simüle edilmiş loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [user]);
+    fetchQuiz();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !showResult && timeLeft > 0 && !alreadySolved) {
@@ -80,7 +49,7 @@ export default function Quiz() {
   const handleAnswer = (selectedIndex) => {
     setSelectedAnswer(selectedIndex);
     setTimeout(() => {
-      if (selectedIndex === questions[currentQuestion].correctAnswer) {
+      if (selectedIndex === questions[currentQuestion]?.correctAnswer) {
         setScore(prev => prev + 1);
       }
       if (currentQuestion < questions.length - 1) {
@@ -90,32 +59,12 @@ export default function Quiz() {
       } else {
         setShowResult(true);
         setShowDoneMsg(true);
-        // Ödülleri ekle
-        if (user && user.quizLastSolved !== todayKey) {
-          const newStats = {
-            ...user.stats,
-            quizWins: (user.stats?.quizWins || 0) + (score >= 3 ? 1 : 0),
-            totalPoints: (user.totalPoints || 0) + score * 3,
-            experience: (user.experience || 0) + score * 10,
-          };
-          // Rozet ekle
-          let newBadges = user.badges || [];
-          if (score >= 3 && !newBadges.some(b => b.id === 'quiz_zeka')) {
-            newBadges = [
-              ...newBadges,
-              { id: 'quiz_zeka', name: 'Zeka Küpü', icon: '🧩', description: 'Günlük yarışmada 3+ doğru', earned: todayKey }
-            ];
-          }
-          // Aktivite ekle
-          const newActivity = [
-            { type: 'quiz', title: `Günlük yarışmayı tamamladınız (${score}/${questions.length})`, date: todayKey },
-            ...(user.recentActivity || [])
-          ].slice(0, 10);
-          updateUser({
-            quizLastSolved: todayKey,
-            stats: newStats,
-            badges: newBadges,
-            recentActivity: newActivity
+        // Skoru backend'e kaydet
+        if (user) {
+          fetch(`${API_URL}/game/score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id, score }),
           });
         }
       }
