@@ -6,8 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { io } from 'socket.io-client';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = 'https://notarium-backend-production.up.railway.app';
-const SOCKET_URL = 'https://notarium-backend-production.up.railway.app';
+const API_URL = 'https://notarium.tr';
+const SOCKET_URL = 'https://notarium.tr';
 let socket;
 
 export default function Chat() {

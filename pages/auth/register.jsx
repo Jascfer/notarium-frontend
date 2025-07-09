@@ -19,7 +19,7 @@ export default function Register() {
   const router = useRouter();
   const { registerUser } = useAuth();
 
-  const API_URL = 'https://notarium-backend-production.up.railway.app';
+  const API_URL = 'https://notarium.tr';
 
   // Google OAuth işlevselliği
   const handleGoogleRegister = async () => {

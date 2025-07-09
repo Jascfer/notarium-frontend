@@ -26,7 +26,7 @@ export default function Login() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const API_URL = 'https://notarium-backend-production.up.railway.app';
+  const API_URL = 'https://notarium.tr';
 
   // Google OAuth işlevselliği
   const handleGoogleLogin = async () => {

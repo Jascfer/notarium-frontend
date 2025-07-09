@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
-const API_URL = 'https://notarium-backend-production.up.railway.app';
+const API_URL = 'https://notarium.tr';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

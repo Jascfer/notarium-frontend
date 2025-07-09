@@ -5,7 +5,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = 'https://notarium-backend-production.up.railway.app';
+const API_URL = 'https://notarium.tr';
 
 export default function Notes() {
   const { user } = useAuth();

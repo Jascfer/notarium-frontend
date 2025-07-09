@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const API_URL = 'https://notarium-backend-production.up.railway.app';
+const API_URL = 'https://notarium.tr';
 
 export default function GameScores() {
   const { user } = useAuth();
