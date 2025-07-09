@@ -26,6 +26,8 @@ export default function Login() {
   const router = useRouter();
   const { login } = useAuth();
 
+  const API_URL = 'https://notarium-backend-production.up.railway.app';
+
   // Google OAuth işlevselliği
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
@@ -114,27 +116,33 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
-    // Gerçek kullanıcı kontrolü
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-      const foundUser = users.find(u => u.email === formData.email);
-      if (!foundUser) {
-        setError('Bu e-posta ile kayıtlı bir kullanıcı bulunamadı.');
+
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || 'Giriş başarısız.');
         setIsLoading(false);
         return;
       }
-      // Şifre kontrolü (demo: şifreyi user objesine kaydettiyseniz kontrol edin)
-      if (foundUser.password && foundUser.password !== formData.password) {
-        setError('Şifre yanlış.');
-        setIsLoading(false);
-        return;
-      }
-      // Giriş başarılı
-      login(foundUser);
+
+      // Başarılı login
+      login(data.user);
       setIsLoading(false);
       router.push('/profile');
-    }, 1000);
+    } catch (err) {
+      setError('Sunucu hatası.');
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e) => {
