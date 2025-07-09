@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,7 +16,14 @@ export default function Register() {
   });
   const [errors, setErrors] = useState({});
   const router = useRouter();
-  const { registerUser } = useAuth();
+  const { registerUser, isAuthenticated } = useAuth();
+
+  // Kullanıcı zaten giriş yaptıysa profile yönlendir
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/profile');
+    }
+  }, [isAuthenticated, router]);
 
   // Google OAuth işlevselliği
   const handleGoogleRegister = () => {
