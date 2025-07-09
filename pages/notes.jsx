@@ -5,7 +5,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Notes() {
   const { user } = useAuth();
