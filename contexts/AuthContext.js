@@ -42,6 +42,14 @@ export function AuthProvider({ children }) {
     fetchUser();
   }, []);
 
+  // Session ID'yi manuel olarak ekle (test için)
+  const addSessionId = (sessionId) => {
+    if (sessionId) {
+      localStorage.setItem('sessionId', sessionId);
+      setSessionId(sessionId);
+    }
+  };
+
   const registerUser = async (userData) => {
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
@@ -80,8 +88,11 @@ export function AuthProvider({ children }) {
       
       // Session ID'yi localStorage'a kaydet
       if (data.sessionId) {
+        console.log('AuthContext: Session ID received:', data.sessionId);
         localStorage.setItem('sessionId', data.sessionId);
         setSessionId(data.sessionId);
+      } else {
+        console.log('AuthContext: No session ID in response');
       }
       
       return { success: true };
@@ -117,7 +128,8 @@ export function AuthProvider({ children }) {
       registerUser,
       isAuthenticated,
       setUserRole,
-      sessionId
+      sessionId,
+      addSessionId
     }}>
       {children}
     </AuthContext.Provider>
