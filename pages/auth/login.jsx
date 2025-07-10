@@ -114,6 +114,8 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Login: Form submitted!');
+    console.log('Login: Form data:', formData);
     setError('');
     setIsLoading(true);
 
