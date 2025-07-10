@@ -102,10 +102,36 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
-    setUser(null);
-    localStorage.removeItem('sessionId');
-    setSessionId(null);
+    try {
+      console.log('AuthContext: Logout called, sessionId:', sessionId);
+      // Session ID varsa URL parametresi olarak gönder
+      const url = sessionId 
+        ? `${API_URL}/auth/logout?sessionId=${sessionId}`
+        : `${API_URL}/auth/logout`;
+      
+      console.log('AuthContext: Logout URL:', url);
+        
+      const res = await fetch(url, { 
+        method: 'POST', 
+        credentials: 'include' 
+      });
+      
+      console.log('AuthContext: Logout response status:', res.status);
+      
+      if (!res.ok) {
+        console.log('Logout error:', res.status, res.statusText);
+      } else {
+        const data = await res.json();
+        console.log('AuthContext: Logout response:', data);
+      }
+    } catch (err) {
+      console.log('Logout error:', err);
+    } finally {
+      console.log('AuthContext: Clearing user state and localStorage');
+      setUser(null);
+      localStorage.removeItem('sessionId');
+      setSessionId(null);
+    }
   };
 
   const isAuthenticated = () => {
