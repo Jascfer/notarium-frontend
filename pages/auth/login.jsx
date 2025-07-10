@@ -118,6 +118,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      console.log('Login: Sending login request...');
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,6 +130,8 @@ export default function Login() {
       });
 
       const data = await res.json();
+      console.log('Login: Response received:', data);
+      
       if (!res.ok) {
         setError(data.message || 'Giriş başarısız.');
         setIsLoading(false);
@@ -136,16 +139,23 @@ export default function Login() {
       }
 
       // Başarılı login
+      console.log('Login: Login successful, user:', data.user);
+      console.log('Login: Session ID:', data.sessionId);
+      
       login(data.user);
       
       // Session ID'yi localStorage'a kaydet
       if (data.sessionId) {
+        console.log('Login: Storing session ID in localStorage:', data.sessionId);
         localStorage.setItem('sessionId', data.sessionId);
+      } else {
+        console.log('Login: No session ID in response');
       }
       
       setIsLoading(false);
       router.push('/profile');
     } catch (err) {
+      console.error('Login: Error during login:', err);
       setError('Sunucu hatası.');
       setIsLoading(false);
     }
