@@ -13,7 +13,9 @@ export default function GameScores() {
     async function fetchScores() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/game/scores/${user.id}`);
+        const res = await fetch(`${API_URL}/game/scores/${user.id}`, {
+          credentials: 'include'
+        });
         const data = await res.json();
         setScores(data);
       } catch (err) {

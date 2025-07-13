@@ -33,19 +33,44 @@ export default function Chat() {
 
   useEffect(() => {
     if (!user) return;
+    
+    // Socket.io bağlantısını kur
     if (!socket) {
-      socket = io(SOCKET_URL);
+      console.log('Chat: Initializing socket connection to:', SOCKET_URL);
+      socket = io(SOCKET_URL, {
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+        forceNew: true
+      });
+      
+      // Socket bağlantı event'lerini dinle
+      socket.on('connect', () => {
+        console.log('Chat: Socket connected successfully');
+      });
+      
+      socket.on('connect_error', (error) => {
+        console.error('Chat: Socket connection error:', error);
+      });
+      
+      socket.on('disconnect', (reason) => {
+        console.log('Chat: Socket disconnected:', reason);
+      });
     }
+    
+    // Kullanıcı online bilgisini gönder
     socket.emit('userOnline', {
       id: user.id,
-      name: user.name,
+      name: user.firstName + ' ' + user.lastName,
       avatar: user.avatar || '👤',
       role: user.role || 'user',
       status: 'online'
     });
+    
     socket.on('onlineUsers', (users) => {
+      console.log('Chat: Online users received:', users);
       setOnlineUsers(users);
     });
+    
     return () => {
       socket.off('onlineUsers');
     };
@@ -54,16 +79,28 @@ export default function Chat() {
   useEffect(() => {
     setIsLoading(true);
     if (!socket) {
-      socket = io(SOCKET_URL);
+      console.log('Chat: Creating new socket connection for channel:', selectedChannel);
+      socket = io(SOCKET_URL, {
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+        forceNew: true
+      });
     }
+    
+    console.log('Chat: Joining channel:', selectedChannel);
     socket.emit('joinChannel', selectedChannel);
+    
     socket.on('chatHistory', (history) => {
+      console.log('Chat: Chat history received:', history);
       setMessages(history);
       setIsLoading(false);
     });
+    
     socket.on('newMessage', (msg) => {
+      console.log('Chat: New message received:', msg);
       setMessages((prev) => [...prev, msg]);
     });
+    
     return () => {
       socket.off('chatHistory');
       socket.off('newMessage');

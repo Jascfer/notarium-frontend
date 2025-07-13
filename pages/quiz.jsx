@@ -24,7 +24,9 @@ export default function Quiz() {
     async function fetchQuiz() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/quiz`);
+        const res = await fetch(`${API_URL}/quiz`, {
+          credentials: 'include'
+        });
         const data = await res.json();
         setQuestions(data[0]?.questions || []);
       } catch (err) {
@@ -65,6 +67,7 @@ export default function Quiz() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: user.id, score }),
+            credentials: 'include'
           });
         }
       }

@@ -60,7 +60,9 @@ export default function Notes() {
     async function fetchNotes() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/notes`);
+        const res = await fetch(`${API_URL}/api/notes`, {
+          credentials: 'include'
+        });
         const data = await res.json();
         setNotes(data);
       } catch (err) {
@@ -172,7 +174,10 @@ export default function Notes() {
       // Unlike
       setUserLikes(prev => prev.filter(id => id !== noteId));
       try {
-        const res = await fetch(`${API_URL}/api/notes/${noteId}/unlike`, { method: 'POST' });
+        const res = await fetch(`${API_URL}/api/notes/${noteId}/unlike`, { 
+          method: 'POST',
+          credentials: 'include'
+        });
         if (!res.ok) throw new Error('Beğeni kaldırılamadı');
         setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: Math.max(0, note.likes - 1) } : note));
       } catch (err) {
@@ -182,7 +187,10 @@ export default function Notes() {
       // Like
       setUserLikes(prev => [...prev, noteId]);
       try {
-        const res = await fetch(`${API_URL}/api/notes/${noteId}/like`, { method: 'POST' });
+        const res = await fetch(`${API_URL}/api/notes/${noteId}/like`, { 
+          method: 'POST',
+          credentials: 'include'
+        });
         if (!res.ok) throw new Error('Beğeni eklenemedi');
         setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: note.likes + 1 } : note));
       } catch (err) {
@@ -202,6 +210,7 @@ export default function Notes() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newNote, author: user?.id }),
+        credentials: 'include'
       });
       if (!res.ok) throw new Error('Not eklenemedi');
       const added = await res.json();
