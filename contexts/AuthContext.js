@@ -17,22 +17,37 @@ export function AuthProvider({ children }) {
     
     async function fetchUser() {
       try {
+        console.log('AuthContext: Fetching user data...');
         // Session ID varsa URL parametresi olarak gönder
         const url = storedSessionId 
           ? `${API_URL}/auth/me?sessionId=${storedSessionId}`
           : `${API_URL}/auth/me`;
           
-        const res = await fetch(url, { credentials: 'include' });
+        console.log('AuthContext: Fetching from URL:', url);
+        
+        const res = await fetch(url, { 
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        console.log('AuthContext: Response status:', res.status);
+        console.log('AuthContext: Response headers:', Object.fromEntries(res.headers.entries()));
+        
         if (res.ok) {
           const data = await res.json();
+          console.log('AuthContext: User data received:', data);
           setUser(data.user);
         } else {
+          console.log('AuthContext: Authentication failed, status:', res.status);
           setUser(null);
           // Session ID geçersizse localStorage'dan sil
           localStorage.removeItem('sessionId');
           setSessionId(null);
         }
-      } catch {
+      } catch (error) {
+        console.error('AuthContext: Error fetching user:', error);
         setUser(null);
         localStorage.removeItem('sessionId');
         setSessionId(null);
@@ -52,38 +67,58 @@ export function AuthProvider({ children }) {
 
   const registerUser = async (userData) => {
     try {
+      console.log('AuthContext: Registering user:', userData);
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
         credentials: 'include'
       });
-      if (!res.ok) throw new Error('Kayıt başarısız');
+      
+      console.log('AuthContext: Register response status:', res.status);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Kayıt başarısız');
+      }
+      
       const data = await res.json();
+      console.log('AuthContext: Register success, user:', data.user);
       setUser(data.user);
       
       // Session ID'yi localStorage'a kaydet
       if (data.sessionId) {
+        console.log('AuthContext: Storing session ID from register:', data.sessionId);
         localStorage.setItem('sessionId', data.sessionId);
         setSessionId(data.sessionId);
       }
       
       return { success: true };
     } catch (err) {
+      console.error('AuthContext: Register error:', err);
       return { success: false, error: err.message };
     }
   };
 
   const login = async (email, password) => {
     try {
+      console.log('AuthContext: Logging in with email:', email);
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
         credentials: 'include'
       });
-      if (!res.ok) throw new Error('Giriş başarısız');
+      
+      console.log('AuthContext: Login response status:', res.status);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Giriş başarısız');
+      }
+      
       const data = await res.json();
+      console.log('AuthContext: Login success, user:', data.user);
       setUser(data.user);
       
       // Session ID'yi localStorage'a kaydet
@@ -97,6 +132,7 @@ export function AuthProvider({ children }) {
       
       return { success: true };
     } catch (err) {
+      console.error('AuthContext: Login error:', err);
       return { success: false, error: err.message };
     }
   };
@@ -113,7 +149,10 @@ export function AuthProvider({ children }) {
         
       const res = await fetch(url, { 
         method: 'POST', 
-        credentials: 'include' 
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
       
       console.log('AuthContext: Logout response status:', res.status);
