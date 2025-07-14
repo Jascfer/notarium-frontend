@@ -33,6 +33,7 @@ export default async function handler(req, res) {
       method: req.method,
       headers: {
         ...req.headers,
+        'content-type': 'application/json',
         host: new URL(backendUrl).host,
       },
       body,
