@@ -1,43 +1,35 @@
 // Next.js API route to proxy auth requests to backend
 export default async function handler(req, res) {
+  // path her zaman dizi olmalı, yoksa boş diziye çevir
   const { path } = req.query;
+  const safePath = Array.isArray(path) ? path : path ? [path] : [];
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notarium-backend-production.up.railway.app';
-  
-  // Construct the backend URL
-  const targetUrl = `${backendUrl}/auth/${path.join('/')}`;
-  
+  const targetUrl = `${backendUrl}/auth${safePath.length > 0 ? '/' + safePath.join('/') : ''}`;
+
   try {
-    console.log(`Proxying ${req.method} request to: ${targetUrl}`);
-    console.log('Request headers:', req.headers);
-    console.log('Request body:', req.body);
-    
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: {
-        'Content-Type': 'application/json',
         ...req.headers,
+        host: new URL(backendUrl).host,
       },
-      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
     });
-    
-    const data = await response.json();
-    
-    console.log('Backend response status:', response.status);
-    console.log('Backend response data:', data);
-    
-    // Forward the response status and headers
-    res.status(response.status);
-    
-    // Forward cookies from backend
-    const setCookieHeader = response.headers.get('set-cookie');
-    if (setCookieHeader) {
-      console.log('Setting cookie header:', setCookieHeader);
-      res.setHeader('Set-Cookie', setCookieHeader);
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch (e) {}
+
+    // Birden fazla set-cookie varsa dizi olarak forward et
+    const setCookie = response.headers.get('set-cookie');
+    if (setCookie) {
+      const cookies = Array.isArray(setCookie) ? setCookie : setCookie.split(/,(?=\s*\w+=)/);
+      res.setHeader('Set-Cookie', cookies);
     }
-    
-    res.json(data);
+
+    res.status(response.status).json(data);
   } catch (error) {
-    console.error('Proxy error:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 } 
