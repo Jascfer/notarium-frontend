@@ -114,6 +114,12 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+    console.log('Login gönderilen:', formData);
+    if (!formData.email || !formData.password) {
+      setError('E-posta ve şifre boş olamaz.');
+      setIsLoading(false);
+      return;
+    }
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
