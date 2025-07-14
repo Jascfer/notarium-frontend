@@ -26,8 +26,6 @@ export default function Login() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const API_URL = 'https://notarium.tr';
-
   // Google OAuth işlevselliği
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
@@ -114,53 +112,29 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login: Form submitted!');
-    console.log('Login: Form data:', formData);
     setError('');
     setIsLoading(true);
-
-    try {
-      console.log('Login: Sending login request...');
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        }),
-        credentials: 'include'
-      });
-
-      const data = await res.json();
-      console.log('Login: Response received:', data);
-      
-      if (!res.ok) {
-        setError(data.message || 'Giriş başarısız.');
+    
+    // Gerçek kullanıcı kontrolü
+    setTimeout(() => {
+      const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+      const foundUser = users.find(u => u.email === formData.email);
+      if (!foundUser) {
+        setError('Bu e-posta ile kayıtlı bir kullanıcı bulunamadı.');
         setIsLoading(false);
         return;
       }
-
-      // Başarılı login
-      console.log('Login: Login successful, user:', data.user);
-      console.log('Login: Session ID:', data.sessionId);
-      
-      login(data.user);
-      
-      // Session ID'yi localStorage'a kaydet
-      if (data.sessionId) {
-        console.log('Login: Storing session ID in localStorage:', data.sessionId);
-        localStorage.setItem('sessionId', data.sessionId);
-      } else {
-        console.log('Login: No session ID in response');
+      // Şifre kontrolü (demo: şifreyi user objesine kaydettiyseniz kontrol edin)
+      if (foundUser.password && foundUser.password !== formData.password) {
+        setError('Şifre yanlış.');
+        setIsLoading(false);
+        return;
       }
-      
+      // Giriş başarılı
+      login(foundUser);
       setIsLoading(false);
       router.push('/profile');
-    } catch (err) {
-      console.error('Login: Error during login:', err);
-      setError('Sunucu hatası.');
-      setIsLoading(false);
-    }
+    }, 1000);
   };
 
   const handleInputChange = (e) => {

@@ -5,7 +5,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = 'https://notarium.tr';
+const API_URL = 'https://notarium-backend-production.up.railway.app';
 
 export default function Quiz() {
   const { user } = useAuth();
@@ -24,9 +24,7 @@ export default function Quiz() {
     async function fetchQuiz() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/quiz`, {
-          credentials: 'include'
-        });
+        const res = await fetch(`${API_URL}/quiz`);
         const data = await res.json();
         setQuestions(data[0]?.questions || []);
       } catch (err) {
@@ -67,7 +65,6 @@ export default function Quiz() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: user.id, score }),
-            credentials: 'include'
           });
         }
       }

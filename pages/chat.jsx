@@ -6,8 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { io } from 'socket.io-client';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = 'https://notarium.tr';
-const SOCKET_URL = 'https://notarium.tr';
+const API_URL = 'https://notarium-backend-production.up.railway.app';
+const SOCKET_URL = 'https://notarium-backend-production.up.railway.app';
 let socket;
 
 export default function Chat() {
@@ -33,44 +33,19 @@ export default function Chat() {
 
   useEffect(() => {
     if (!user) return;
-    
-    // Socket.io bağlantısını kur
     if (!socket) {
-      console.log('Chat: Initializing socket connection to:', SOCKET_URL);
-      socket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
-        withCredentials: true,
-        forceNew: true
-      });
-      
-      // Socket bağlantı event'lerini dinle
-      socket.on('connect', () => {
-        console.log('Chat: Socket connected successfully');
-      });
-      
-      socket.on('connect_error', (error) => {
-        console.error('Chat: Socket connection error:', error);
-      });
-      
-      socket.on('disconnect', (reason) => {
-        console.log('Chat: Socket disconnected:', reason);
-      });
+      socket = io(SOCKET_URL);
     }
-    
-    // Kullanıcı online bilgisini gönder
     socket.emit('userOnline', {
       id: user.id,
-      name: user.firstName + ' ' + user.lastName,
+      name: user.name,
       avatar: user.avatar || '👤',
       role: user.role || 'user',
       status: 'online'
     });
-    
     socket.on('onlineUsers', (users) => {
-      console.log('Chat: Online users received:', users);
       setOnlineUsers(users);
     });
-    
     return () => {
       socket.off('onlineUsers');
     };
@@ -79,28 +54,16 @@ export default function Chat() {
   useEffect(() => {
     setIsLoading(true);
     if (!socket) {
-      console.log('Chat: Creating new socket connection for channel:', selectedChannel);
-      socket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
-        withCredentials: true,
-        forceNew: true
-      });
+      socket = io(SOCKET_URL);
     }
-    
-    console.log('Chat: Joining channel:', selectedChannel);
     socket.emit('joinChannel', selectedChannel);
-    
     socket.on('chatHistory', (history) => {
-      console.log('Chat: Chat history received:', history);
       setMessages(history);
       setIsLoading(false);
     });
-    
     socket.on('newMessage', (msg) => {
-      console.log('Chat: New message received:', msg);
       setMessages((prev) => [...prev, msg]);
     });
-    
     return () => {
       socket.off('chatHistory');
       socket.off('newMessage');

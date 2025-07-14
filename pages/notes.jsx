@@ -5,7 +5,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = 'https://notarium.tr';
+const API_URL = 'https://notarium-backend-production.up.railway.app';
 
 export default function Notes() {
   const { user } = useAuth();
@@ -60,9 +60,7 @@ export default function Notes() {
     async function fetchNotes() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/notes`, {
-          credentials: 'include'
-        });
+        const res = await fetch(`${API_URL}/api/notes`);
         const data = await res.json();
         setNotes(data);
       } catch (err) {
@@ -174,10 +172,7 @@ export default function Notes() {
       // Unlike
       setUserLikes(prev => prev.filter(id => id !== noteId));
       try {
-        const res = await fetch(`${API_URL}/api/notes/${noteId}/unlike`, { 
-          method: 'POST',
-          credentials: 'include'
-        });
+        const res = await fetch(`${API_URL}/api/notes/${noteId}/unlike`, { method: 'POST' });
         if (!res.ok) throw new Error('Beğeni kaldırılamadı');
         setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: Math.max(0, note.likes - 1) } : note));
       } catch (err) {
@@ -187,10 +182,7 @@ export default function Notes() {
       // Like
       setUserLikes(prev => [...prev, noteId]);
       try {
-        const res = await fetch(`${API_URL}/api/notes/${noteId}/like`, { 
-          method: 'POST',
-          credentials: 'include'
-        });
+        const res = await fetch(`${API_URL}/api/notes/${noteId}/like`, { method: 'POST' });
         if (!res.ok) throw new Error('Beğeni eklenemedi');
         setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: note.likes + 1 } : note));
       } catch (err) {
@@ -210,7 +202,6 @@ export default function Notes() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newNote, author: user?.id }),
-        credentials: 'include'
       });
       if (!res.ok) throw new Error('Not eklenemedi');
       const added = await res.json();

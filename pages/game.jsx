@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const API_URL = 'https://notarium.tr';
+const API_URL = 'https://notarium-backend-production.up.railway.app';
 
 export default function GameScores() {
   const { user } = useAuth();
@@ -13,9 +13,7 @@ export default function GameScores() {
     async function fetchScores() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/game/scores/${user.id}`, {
-          credentials: 'include'
-        });
+        const res = await fetch(`${API_URL}/game/scores/${user.id}`);
         const data = await res.json();
         setScores(data);
       } catch (err) {
