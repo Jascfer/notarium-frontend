@@ -3,8 +3,12 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext();
 
 // Environment configuration - Her zaman local API routes kullan
-const API_URL = '/api'; // Force local API routes
+const API_URL = '/api'; // Force local API routes - ignore environment variables
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://notarium-backend-production.up.railway.app';
+
+// Debug logging
+console.log('AuthContext - API_URL:', API_URL);
+console.log('AuthContext - SOCKET_URL:', SOCKET_URL);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

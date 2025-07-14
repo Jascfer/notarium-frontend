@@ -1,10 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import dynamic from 'next/dynamic';
 
-export default function DebugAuth() {
+// Prevent SSR for this debug page
+const DebugAuth = dynamic(() => Promise.resolve(DebugAuthComponent), {
+  ssr: false,
+  loading: () => <div>Loading debug panel...</div>
+});
+
+function DebugAuthComponent() {
   const { user, login, logout, API_URL } = useAuth();
   const [testResults, setTestResults] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Check if we're on the client side
+  useEffect(() => {
+    setIsClient(true);
+    console.log('DebugAuth - API_URL:', API_URL);
+  }, [API_URL]);
 
   const runTests = async () => {
     setLoading(true);
@@ -45,31 +59,37 @@ export default function DebugAuth() {
         data: meData
       };
 
-      // Test 4: Cookies - Cloudflare test
-      console.log('Test 4: Cookies');
-      const cookies = document.cookie;
-      results.cookies = {
-        cookies: cookies,
-        hasSessionCookie: cookies.includes('connect.sid'),
-        cookieDetails: cookies.split(';').map(c => c.trim())
-      };
+      // Test 4: Cookies - Cloudflare test (only on client)
+      if (typeof window !== 'undefined') {
+        console.log('Test 4: Cookies');
+        const cookies = document.cookie;
+        results.cookies = {
+          cookies: cookies,
+          hasSessionCookie: cookies.includes('connect.sid'),
+          cookieDetails: cookies.split(';').map(c => c.trim())
+        };
+      }
 
-      // Test 5: Session storage
-      console.log('Test 5: Session storage');
-      const sessionId = sessionStorage.getItem('sessionId');
-      results.sessionStorage = {
-        sessionId: sessionId,
-        hasSessionId: !!sessionId
-      };
+      // Test 5: Session storage (only on client)
+      if (typeof window !== 'undefined') {
+        console.log('Test 5: Session storage');
+        const sessionId = sessionStorage.getItem('sessionId');
+        results.sessionStorage = {
+          sessionId: sessionId,
+          hasSessionId: !!sessionId
+        };
+      }
 
-      // Test 6: Cloudflare specific tests
-      console.log('Test 6: Cloudflare tests');
-      results.cloudflare = {
-        currentDomain: window.location.hostname,
-        isHTTPS: window.location.protocol === 'https:',
-        userAgent: navigator.userAgent,
-        cookieEnabled: navigator.cookieEnabled
-      };
+      // Test 6: Cloudflare specific tests (only on client)
+      if (typeof window !== 'undefined') {
+        console.log('Test 6: Cloudflare tests');
+        results.cloudflare = {
+          currentDomain: window.location.hostname,
+          isHTTPS: window.location.protocol === 'https:',
+          userAgent: navigator.userAgent,
+          cookieEnabled: navigator.cookieEnabled
+        };
+      }
 
     } catch (error) {
       console.error('Test error:', error);
@@ -94,6 +114,11 @@ export default function DebugAuth() {
     const result = await login('founder@example.com', 'founder123');
     console.log('Founder login result:', result);
   };
+
+  // Don't render anything during SSR
+  if (!isClient) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -151,27 +176,33 @@ export default function DebugAuth() {
         </pre>
       </div>
 
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold mb-2">Browser Info</h2>
-        <div className="bg-gray-100 p-2 rounded">
-          <p><strong>User Agent:</strong> {navigator.userAgent}</p>
-          <p><strong>Cookies Enabled:</strong> {navigator.cookieEnabled}</p>
-          <p><strong>Current URL:</strong> {window.location.href}</p>
-          <p><strong>Origin:</strong> {window.location.origin}</p>
-          <p><strong>Protocol:</strong> {window.location.protocol}</p>
-          <p><strong>Hostname:</strong> {window.location.hostname}</p>
-        </div>
-      </div>
+      {isClient && (
+        <>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">Browser Info</h2>
+            <div className="bg-gray-100 p-2 rounded">
+              <p><strong>User Agent:</strong> {navigator.userAgent}</p>
+              <p><strong>Cookies Enabled:</strong> {navigator.cookieEnabled}</p>
+              <p><strong>Current URL:</strong> {window.location.href}</p>
+              <p><strong>Origin:</strong> {window.location.origin}</p>
+              <p><strong>Protocol:</strong> {window.location.protocol}</p>
+              <p><strong>Hostname:</strong> {window.location.hostname}</p>
+            </div>
+          </div>
 
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold mb-2">Cloudflare Checklist</h2>
-        <div className="bg-gray-100 p-2 rounded">
-          <p>✅ <strong>HTTPS:</strong> {window.location.protocol === 'https:' ? 'Yes' : 'No'}</p>
-          <p>✅ <strong>Domain:</strong> {window.location.hostname.includes('notarium.tr') ? 'Correct' : 'Wrong'}</p>
-          <p>✅ <strong>Cookies:</strong> {navigator.cookieEnabled ? 'Enabled' : 'Disabled'}</p>
-          <p>✅ <strong>Session Cookie:</strong> {document.cookie.includes('connect.sid') ? 'Present' : 'Missing'}</p>
-        </div>
-      </div>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">Cloudflare Checklist</h2>
+            <div className="bg-gray-100 p-2 rounded">
+              <p>✅ <strong>HTTPS:</strong> {window.location.protocol === 'https:' ? 'Yes' : 'No'}</p>
+              <p>✅ <strong>Domain:</strong> {window.location.hostname.includes('notarium.tr') ? 'Correct' : 'Wrong'}</p>
+              <p>✅ <strong>Cookies:</strong> {navigator.cookieEnabled ? 'Enabled' : 'Disabled'}</p>
+              <p>✅ <strong>Session Cookie:</strong> {document.cookie.includes('connect.sid') ? 'Present' : 'Missing'}</p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
-} 
+}
+
+export default DebugAuth; 
