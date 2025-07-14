@@ -114,27 +114,27 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
-    // Gerçek kullanıcı kontrolü
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-      const foundUser = users.find(u => u.email === formData.email);
-      if (!foundUser) {
-        setError('Bu e-posta ile kayıtlı bir kullanıcı bulunamadı.');
-        setIsLoading(false);
-        return;
-      }
-      // Şifre kontrolü (demo: şifreyi user objesine kaydettiyseniz kontrol edin)
-      if (foundUser.password && foundUser.password !== formData.password) {
-        setError('Şifre yanlış.');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || 'Giriş başarısız.');
         setIsLoading(false);
         return;
       }
       // Giriş başarılı
-      login(foundUser);
+      login(data.user);
       setIsLoading(false);
       router.push('/profile');
-    }, 1000);
+    } catch (err) {
+      setError('Sunucu hatası. Lütfen tekrar deneyin.');
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e) => {
