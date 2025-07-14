@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Search, Download, Eye, Heart, Filter, BookOpen, Calendar, User, Plus, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = 'https://notarium-backend-production.up.railway.app';
+const API_URL = '/api'; // Use local API routes
 
 export default function Notes() {
   const { user } = useAuth();
@@ -60,7 +61,7 @@ export default function Notes() {
     async function fetchNotes() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/notes`);
+        const res = await fetch(`${API_URL}/notes`);
         const data = await res.json();
         setNotes(data);
       } catch (err) {
@@ -150,7 +151,7 @@ export default function Notes() {
 
   const handleDownload = async (noteId) => {
     try {
-      const res = await fetch(`${API_URL}/api/notes/${noteId}/download`);
+      const res = await fetch(`${API_URL}/notes/${noteId}/download`);
       if (!res.ok) throw new Error('İndirme başarısız');
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -172,7 +173,7 @@ export default function Notes() {
       // Unlike
       setUserLikes(prev => prev.filter(id => id !== noteId));
       try {
-        const res = await fetch(`${API_URL}/api/notes/${noteId}/unlike`, { method: 'POST' });
+        const res = await fetch(`${API_URL}/notes/${noteId}/unlike`, { method: 'POST' });
         if (!res.ok) throw new Error('Beğeni kaldırılamadı');
         setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: Math.max(0, note.likes - 1) } : note));
       } catch (err) {
@@ -182,7 +183,7 @@ export default function Notes() {
       // Like
       setUserLikes(prev => [...prev, noteId]);
       try {
-        const res = await fetch(`${API_URL}/api/notes/${noteId}/like`, { method: 'POST' });
+        const res = await fetch(`${API_URL}/notes/${noteId}/like`, { method: 'POST' });
         if (!res.ok) throw new Error('Beğeni eklenemedi');
         setNotes(prev => prev.map(note => note.id === noteId ? { ...note, likes: note.likes + 1 } : note));
       } catch (err) {
@@ -198,7 +199,7 @@ export default function Notes() {
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/api/notes`, {
+      const res = await fetch(`${API_URL}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newNote, author: user?.id }),
@@ -218,7 +219,7 @@ export default function Notes() {
   const handleDeleteNote = async (noteId) => {
     if (!window.confirm('Bu notu silmek istediğinize emin misiniz?')) return;
     try {
-      const res = await fetch(`${API_URL}/api/notes/${noteId}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/notes/${noteId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Not silinemedi');
       setNotes(prev => prev.filter(note => note.id !== noteId));
     } catch (err) {

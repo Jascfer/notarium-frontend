@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Trophy, Clock, Star, CheckCircle, XCircle, Info } from 'lucide-react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const API_URL = 'https://notarium-backend-production.up.railway.app';
+const API_URL = '/api'; // Use local API routes
 
 export default function Quiz() {
   const { user } = useAuth();
