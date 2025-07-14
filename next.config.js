@@ -36,4 +36,7 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig; 
+module.exports = {
+  output: 'standalone',
+  // ...varsa diğer ayarların
+}; 
