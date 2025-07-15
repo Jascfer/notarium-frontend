@@ -135,6 +135,7 @@ export default function Login() {
       }
       // Giriş başarılı
       login(data.user);
+      setFormData({ email: '', password: '' });
       setIsLoading(false);
       router.push('/profile');
     } catch (err) {

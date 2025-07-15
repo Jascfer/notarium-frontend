@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     let body = undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       const rawBody = await buffer(req);
-      body = rawBody.length > 0 ? rawBody.toString() : undefined;
+      body = rawBody.length > 0 ? JSON.stringify(JSON.parse(rawBody.toString())) : undefined;
     }
     const response = await fetch(targetUrl, {
       method: req.method,
