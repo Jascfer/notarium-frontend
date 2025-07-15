@@ -12,9 +12,7 @@ export function AuthProvider({ children }) {
 
   // Fetch user on mount (JWT)
   useEffect(() => {
-    // Oturum cookie tabanlı, sadece user'ı state'te tut
-    setUser(null);
-    setIsLoading(false);
+    fetchUser();
   }, []);
 
   const fetchUser = async () => {
