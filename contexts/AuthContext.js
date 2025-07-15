@@ -7,39 +7,20 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://notarium-backe
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Fetch user on mount (JWT)
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
-      setIsLoading(false);
-    } else {
-      setUser(null);
-      setToken(null);
-      setIsLoading(false);
-    }
+    // Oturum cookie tabanlı, sadece user'ı state'te tut
+    setUser(null);
+    setIsLoading(false);
   }, []);
 
   const fetchUser = async () => {
-    const storedToken = localStorage.getItem('token');
-    if (!storedToken) {
-      setUser(null);
-      setError('No token');
-      setIsLoading(false);
-      return;
-    }
     try {
       const res = await fetch(`${API_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${storedToken}`,
-          'Content-Type': 'application/json',
-        }
+        credentials: 'include'
       });
       if (res.ok) {
         const data = await res.json();
@@ -48,8 +29,6 @@ export function AuthProvider({ children }) {
       } else {
         setUser(null);
         setError('Authentication failed');
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
       }
     } catch (err) {
       setUser(null);
@@ -64,16 +43,14 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
+        credentials: 'include'
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || 'Kayıt başarısız');
       }
       setUser(data.user);
-      setToken(data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('token', data.token);
       setError(null);
       return { success: true };
     } catch (err) {
@@ -87,16 +64,14 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || 'Giriş başarısız');
       }
       setUser(data.user);
-      setToken(data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem('token', data.token);
       setError(null);
       return { success: true };
     } catch (err) {
@@ -107,10 +82,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUser(null);
-    setToken(null);
     setError(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
   };
 
   const refreshUser = async () => {
@@ -119,14 +91,13 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
-    token,
     isLoading,
     error,
     login,
     logout,
     registerUser,
     refreshUser,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!user,
     API_URL,
     SOCKET_URL
   };
