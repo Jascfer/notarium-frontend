@@ -58,7 +58,7 @@ export default function Navbar() {
                   className="flex items-center space-x-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   <span className="text-lg">{user?.avatar || '👤'}</span>
-                  <span>{user?.name || 'Kullanıcı'}</span>
+                  <span>{user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Kullanıcı'}</span>
                 </button>
                 
                 {isUserMenuOpen && (
@@ -133,7 +133,7 @@ export default function Navbar() {
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center space-x-2 px-3 py-2">
                   <span className="text-lg">{user?.avatar || '👤'}</span>
-                  <span className="font-medium text-gray-900">{user?.name || 'Kullanıcı'}</span>
+                  <span className="font-medium text-gray-900">{user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Kullanıcı'}</span>
                 </div>
                 <button
                   onClick={handleLogout}

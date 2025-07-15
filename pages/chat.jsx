@@ -51,7 +51,7 @@ export default function Chat() {
       // Send user info after connection
       newSocket.emit('userOnline', {
         id: user.id,
-        name: `${user.firstName || 'Kullanıcı'} ${user.lastName || ''}`.trim(),
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         avatar: user.avatar || '👤',
         role: user.role || 'user',
         status: 'online'

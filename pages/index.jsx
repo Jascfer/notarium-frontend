@@ -94,7 +94,7 @@ export default function Home() {
             <div className="text-center">
               <div className="text-4xl mb-4">👋</div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Hoş geldin, {user?.name}!
+                Hoş geldin, {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : ''}!
               </h2>
               <p className="text-xl text-gray-600 mb-8">
                 Bugün ne öğrenmek istiyorsun? Notlarını paylaş, arkadaşlarınla sohbet et veya günlük yarışmaya katıl!
