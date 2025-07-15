@@ -51,7 +51,7 @@ export default function Chat() {
       // Send user info after connection
       newSocket.emit('userOnline', {
         id: user.id,
-        name: `${user.firstName} ${user.lastName}`,
+        name: `${user.firstName || 'Kullanıcı'} ${user.lastName || ''}`.trim(),
         avatar: user.avatar || '👤',
         role: user.role || 'user',
         status: 'online'
@@ -245,8 +245,8 @@ export default function Chat() {
                 {onlineUsers.map((user) => (
                   <div key={user.id} className={`flex items-center justify-between p-2 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="flex items-center">
-                      <span className="mr-2">{user.avatar}</span>
-                      <span className="text-sm">{user.name}</span>
+                      <span className="mr-2">{user.avatar || '👤'}</span>
+                      <span className="text-sm">{user.name || 'Kullanıcı'}</span>
                       {user.role === 'admin' && <Crown className="ml-1 text-yellow-500" size={16} />}
                       {user.role === 'founder' && <Shield className="ml-1 text-purple-500" size={16} />}
                     </div>

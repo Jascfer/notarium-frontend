@@ -63,7 +63,7 @@ export default function Notes() {
       try {
         const res = await fetch(`${API_URL}/notes`);
         const data = await res.json();
-        setNotes(data);
+        setNotes(Array.isArray(data) ? data : []);
       } catch (err) {
         setNotes([]);
       }
@@ -105,9 +105,10 @@ export default function Notes() {
   }, [subjects]);
 
   const filteredNotes = notes.filter(note => {
+    const tags = Array.isArray(note.tags) ? note.tags : [];
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          note.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                         tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesSubject = selectedSubject === 'all' || note.subject === selectedSubject;
     
@@ -452,7 +453,7 @@ export default function Notes() {
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {note.tags.map((tag, index) => (
+                    {(Array.isArray(note.tags) ? note.tags : []).map((tag, index) => (
                       <span
                         key={index}
                         className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800"
