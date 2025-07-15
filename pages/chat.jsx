@@ -219,6 +219,14 @@ export default function Chat() {
     }
   };
 
+  // Çevrimiçi kullanıcıları benzersiz ID'ye göre filtrele
+  const uniqueOnlineUsers = Object.values(
+    onlineUsers.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {})
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -237,12 +245,12 @@ export default function Chat() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold flex items-center">
                   <Users className="mr-2" />
-                  Çevrimiçi ({onlineUsers.length})
+                  Çevrimiçi ({uniqueOnlineUsers.length})
                 </h2>
               </div>
               
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {onlineUsers.map((user) => (
+                {uniqueOnlineUsers.map((user) => (
                   <div key={user.id} className={`flex items-center justify-between p-2 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="flex items-center">
                       <span className="mr-2">{user.avatar || '👤'}</span>
