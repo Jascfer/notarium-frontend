@@ -5,7 +5,12 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+
+  // Eğer kullanıcı yükleniyorsa, Navbar'ı boş veya skeleton ile göster
+  if (isLoading) {
+    return <div style={{ height: 64 }} />; // Navbar yüksekliği kadar boşluk bırak
+  }
 
   const navItems = [
     { icon: Home, label: 'Ana Sayfa', href: '/' },
