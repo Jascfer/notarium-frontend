@@ -120,28 +120,15 @@ export default function Login() {
       setIsLoading(false);
       return;
     }
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: formData.email, password: formData.password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || 'Giriş başarısız.');
-        setIsLoading(false);
-        return;
-      }
-      // Giriş başarılı
-      login(data.user);
-      setFormData({ email: '', password: '' });
+    const result = await login(formData.email, formData.password);
+    if (!result.success) {
+      setError(result.error || 'Giriş başarısız.');
       setIsLoading(false);
-      router.push('/profile');
-    } catch (err) {
-      setError('Sunucu hatası. Lütfen tekrar deneyin.');
-      setIsLoading(false);
+      return;
     }
+    setFormData({ email: '', password: '' });
+    setIsLoading(false);
+    router.push('/profile');
   };
 
   const handleInputChange = (e) => {
