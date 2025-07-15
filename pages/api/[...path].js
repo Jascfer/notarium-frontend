@@ -16,8 +16,10 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         ...req.headers,
+        cookie: req.headers.cookie || '', // Forward cookies from client
       },
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+      credentials: 'include', // Ensure cookies are sent
     });
     
     const data = await response.json();
