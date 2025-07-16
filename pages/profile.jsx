@@ -72,9 +72,27 @@ export default function Profile() {
     }
   };
 
-  const handleAvatarChange = (newAvatar) => {
-    updateUser({ avatar: newAvatar });
-    setShowAvatarUpload(false);
+  const handleAvatarChange = async (newAvatar) => {
+    try {
+      const res = await fetch('/api/auth/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ avatar: newAvatar })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        updateUser({ avatar: newAvatar });
+        setShowAvatarUpload(false);
+        alert('Avatar başarıyla güncellendi!');
+      } else {
+        alert('Avatar güncellenirken hata oluştu.');
+      }
+    } catch (error) {
+      console.error('Avatar güncelleme hatası:', error);
+      alert('Avatar güncellenirken hata oluştu.');
+    }
   };
 
   const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
@@ -125,8 +143,17 @@ export default function Profile() {
           <div className={`bg-white text-gray-900 rounded-2xl shadow-sm p-8 mb-8`}>
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 flex flex-col md:flex-row items-center md:items-start">
               <div className="flex-shrink-0 mr-8 mb-6 md:mb-0">
-                <div className="w-32 h-32 rounded-full bg-purple-100 flex items-center justify-center text-6xl">
-                  {user.avatar || '👨‍🎓'}
+                <div className="relative">
+                  <div className="w-32 h-32 rounded-full bg-purple-100 flex items-center justify-center text-6xl">
+                    {user.avatar || '👨‍🎓'}
+                  </div>
+                  <button
+                    onClick={() => setShowAvatarUpload(true)}
+                    className="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors"
+                    title="Avatar Değiştir"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </button>
                 </div>
                 {/* Seviye göstergesi */}
                 {user?.level && (
@@ -347,6 +374,47 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Avatar Seçim Modal */}
+      {showAvatarUpload && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <Camera className="h-6 w-6 mr-2 text-purple-600" />
+                Avatar Seç
+              </h2>
+              <button
+                onClick={() => setShowAvatarUpload(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              {avatarOptions.map((avatar, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleAvatarChange(avatar)}
+                  className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-all duration-200 ${
+                    user.avatar === avatar 
+                      ? 'bg-purple-100 border-2 border-purple-500' 
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                  title={`Avatar ${index + 1}`}
+                >
+                  {avatar}
+                </button>
+              ))}
+            </div>
+            
+            <div className="text-center text-sm text-gray-600">
+              Avatar'ınızı seçtikten sonra tüm sayfalarda aynı avatar görünecektir.
+            </div>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 } 
