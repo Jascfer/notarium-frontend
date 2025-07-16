@@ -254,7 +254,15 @@ export default function Chat() {
                   <div key={user.id} className={`flex items-center justify-between p-2 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="flex items-center">
                       <span className="mr-2">{user.avatar || '👤'}</span>
-                      <span className="text-sm">{user.name || 'Kullanıcı'}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{user.name || 'Kullanıcı'}</span>
+                        {user.level && (
+                          <div className="flex items-center space-x-1 text-xs text-gray-500">
+                            <span className="text-yellow-600">⭐</span>
+                            <span>Seviye {user.level}</span>
+                          </div>
+                        )}
+                      </div>
                       {user.role === 'admin' && <Crown className="ml-1 text-yellow-500" size={16} />}
                       {user.role === 'founder' && <Shield className="ml-1 text-purple-500" size={16} />}
                     </div>

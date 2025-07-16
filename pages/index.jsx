@@ -95,6 +95,13 @@ export default function Home() {
               <div className="text-4xl mb-4">👋</div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Hoş geldin, {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : ''}!
+                {user?.level && (
+                  <div className="flex items-center justify-center space-x-2 mt-2">
+                    <span className="text-yellow-600 text-2xl">⭐</span>
+                    <span className="text-lg font-semibold text-purple-600">Seviye {user.level}</span>
+                    <span className="text-sm text-gray-500">({user.experience || 0} XP)</span>
+                  </div>
+                )}
               </h2>
               <p className="text-xl text-gray-600 mb-8">
                 Bugün ne öğrenmek istiyorsun? Notlarını paylaş, arkadaşlarınla sohbet et veya günlük yarışmaya katıl!

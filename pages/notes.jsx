@@ -433,9 +433,17 @@ export default function Notes() {
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span className="flex items-center">
                           <User className="h-4 w-4 mr-1" />
-                          {note.first_name && note.last_name
-                            ? `${note.first_name} ${note.last_name}`
-                            : note.author}
+                          <div className="flex flex-col">
+                            <span>{note.first_name && note.last_name
+                              ? `${note.first_name} ${note.last_name}`
+                              : note.author}</span>
+                            {note.author_level && (
+                              <div className="flex items-center space-x-1 text-xs text-gray-500">
+                                <span className="text-yellow-600">⭐</span>
+                                <span>Seviye {note.author_level}</span>
+                              </div>
+                            )}
+                          </div>
                         </span>
                         <span className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1" />

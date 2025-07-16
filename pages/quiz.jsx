@@ -85,6 +85,19 @@ export default function Quiz() {
   if (isLoading) {
     return <LoadingSpinner text="Yarışma hazırlanıyor..." />;
   }
+  if (!questions || questions.length === 0) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-xl">
+            <div className="text-5xl mb-4">❌</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Bugün için yarışma sorusu bulunamadı.</h1>
+            <p className="text-gray-600 mb-4">Lütfen daha sonra tekrar deneyin.</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
   if (alreadySolved) {
     return (
       <ProtectedRoute>
@@ -158,6 +171,19 @@ export default function Quiz() {
   }
 
   const currentQ = questions[currentQuestion];
+  if (!currentQ || !currentQ.question || !Array.isArray(currentQ.options)) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-xl">
+            <div className="text-5xl mb-4">❌</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Soru verisi hatalı veya eksik.</h1>
+            <p className="text-gray-600 mb-4">Lütfen daha sonra tekrar deneyin.</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>

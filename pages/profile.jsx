@@ -128,6 +128,24 @@ export default function Profile() {
                 <div className="w-32 h-32 rounded-full bg-purple-100 flex items-center justify-center text-6xl">
                   {user.avatar || '👨‍🎓'}
                 </div>
+                {/* Seviye göstergesi */}
+                {user?.level && (
+                  <div className="mt-4 text-center">
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <span className="text-yellow-600 text-2xl">⭐</span>
+                      <span className="font-bold text-lg">Seviye {user.level}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 mb-2">
+                      {user.experience || 0} / {user.nextLevelExp || 100} XP
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-yellow-400 to-orange-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${user.levelProgress || 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center space-x-2">
