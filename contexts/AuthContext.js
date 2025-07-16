@@ -2,33 +2,49 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-const API_URL = '/api';
+// Environment configuration - Her zaman local API routes kullan
+const API_URL = '/api'; // Force local API routes - ignore environment variables
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'https://notarium-backend-production.up.railway.app';
+
+// Debug logging
+console.log('AuthContext - API_URL:', API_URL);
+console.log('AuthContext - SOCKET_URL:', SOCKET_URL);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch user on mount (JWT)
+  // Fetch user on mount
   useEffect(() => {
     fetchUser();
   }, []);
 
   const fetchUser = async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/me`, {
-        credentials: 'include'
+      console.log('Fetching user from:', `${API_URL}/auth/me`);
+      
+      const res = await fetch(`${API_URL}/auth/me`, { 
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
+      
+      console.log('Auth/me response status:', res.status);
+      
       if (res.ok) {
         const data = await res.json();
+        console.log('User data received:', data);
         setUser(data.user);
         setError(null);
       } else {
+        console.log('Auth/me failed:', res.status, res.statusText);
         setUser(null);
         setError('Authentication failed');
       }
     } catch (err) {
+      console.error('Fetch user error:', err);
       setUser(null);
       setError(err.message);
     } finally {
@@ -38,20 +54,29 @@ export function AuthProvider({ children }) {
 
   const registerUser = async (userData) => {
     try {
+      console.log('Registering user:', userData.email);
+      
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify(userData),
         credentials: 'include'
       });
+      
       const data = await res.json();
+      
       if (!res.ok) {
         throw new Error(data.message || 'Kayıt başarısız');
       }
+      
+      console.log('Registration successful:', data);
       setUser(data.user);
       setError(null);
       return { success: true };
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err.message);
       return { success: false, error: err.message };
     }
@@ -59,31 +84,66 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
+      console.log('Logging in user:', email);
+      
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({ email, password }),
         credentials: 'include'
       });
+      
       const data = await res.json();
+      
       if (!res.ok) {
         throw new Error(data.message || 'Giriş başarısız');
       }
+      
+      console.log('Login successful:', data);
       setUser(data.user);
       setError(null);
+      
+      // Session'ı localStorage'a kaydet (opsiyonel)
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      
       return { success: true };
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.message);
       return { success: false, error: err.message };
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setError(null);
+  const logout = async () => {
+    try {
+      console.log('Logging out user');
+      
+      await fetch(`${API_URL}/auth/logout`, { 
+        method: 'POST', 
+        credentials: 'include' 
+      });
+      
+      setUser(null);
+      setError(null);
+      
+      // LocalStorage'dan temizle
+      localStorage.removeItem('user');
+      
+      console.log('Logout successful');
+    } catch (err) {
+      console.error('Logout error:', err);
+      // Hata olsa bile user'ı temizle
+      setUser(null);
+      localStorage.removeItem('user');
+    }
   };
 
   const refreshUser = async () => {
+    console.log('Refreshing user data');
     await fetchUser();
   };
 

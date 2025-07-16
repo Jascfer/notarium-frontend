@@ -114,21 +114,27 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    console.log('Login gönderilen:', formData);
-    if (!formData.email || !formData.password) {
-      setError('E-posta ve şifre boş olamaz.');
+    
+    // Gerçek kullanıcı kontrolü
+    setTimeout(() => {
+      const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+      const foundUser = users.find(u => u.email === formData.email);
+      if (!foundUser) {
+        setError('Bu e-posta ile kayıtlı bir kullanıcı bulunamadı.');
+        setIsLoading(false);
+        return;
+      }
+      // Şifre kontrolü (demo: şifreyi user objesine kaydettiyseniz kontrol edin)
+      if (foundUser.password && foundUser.password !== formData.password) {
+        setError('Şifre yanlış.');
+        setIsLoading(false);
+        return;
+      }
+      // Giriş başarılı
+      login(foundUser);
       setIsLoading(false);
-      return;
-    }
-    const result = await login(formData.email, formData.password);
-    if (!result.success) {
-      setError(result.error || 'Giriş başarısız.');
-      setIsLoading(false);
-      return;
-    }
-    setFormData({ email: '', password: '' });
-    setIsLoading(false);
-    router.push('/profile');
+      router.push('/profile');
+    }, 1000);
   };
 
   const handleInputChange = (e) => {

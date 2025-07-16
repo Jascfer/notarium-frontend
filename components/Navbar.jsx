@@ -5,12 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
-
-  // Eğer kullanıcı yükleniyorsa, Navbar'ı boş veya skeleton ile göster
-  if (isLoading) {
-    return <div style={{ height: 64 }} />; // Navbar yüksekliği kadar boşluk bırak
-  }
+  const { user, isAuthenticated, logout } = useAuth();
 
   const navItems = [
     { icon: Home, label: 'Ana Sayfa', href: '/' },
@@ -63,16 +58,7 @@ export default function Navbar() {
                   className="flex items-center space-x-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   <span className="text-lg">{user?.avatar || '👤'}</span>
-                  <div className="flex flex-col items-start">
-                    <span>{user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Kullanıcı'}</span>
-                    {user?.level && (
-                      <div className="flex items-center space-x-1 text-xs">
-                        <span className="text-yellow-600">⭐</span>
-                        <span>Seviye {user.level}</span>
-                        <span className="text-gray-500">({user.experience || 0} XP)</span>
-                      </div>
-                    )}
-                  </div>
+                  <span>{user?.name || 'Kullanıcı'}</span>
                 </button>
                 
                 {isUserMenuOpen && (
@@ -147,16 +133,7 @@ export default function Navbar() {
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center space-x-2 px-3 py-2">
                   <span className="text-lg">{user?.avatar || '👤'}</span>
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-900">{user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Kullanıcı'}</span>
-                    {user?.level && (
-                      <div className="flex items-center space-x-1 text-xs">
-                        <span className="text-yellow-600">⭐</span>
-                        <span>Seviye {user.level}</span>
-                        <span className="text-gray-500">({user.experience || 0} XP)</span>
-                      </div>
-                    )}
-                  </div>
+                  <span className="font-medium text-gray-900">{user?.name || 'Kullanıcı'}</span>
                 </div>
                 <button
                   onClick={handleLogout}

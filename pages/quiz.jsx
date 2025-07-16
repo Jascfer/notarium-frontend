@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Trophy, Clock, Star, CheckCircle, XCircle, Info, Award, BarChart3, History, Users, Target } from 'lucide-react';
+import { Trophy, Clock, Star, CheckCircle, XCircle, Info } from 'lucide-react';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,29 +20,15 @@ export default function Quiz() {
   const [timeLeft, setTimeLeft] = useState(30);
   const [alreadySolved, setAlreadySolved] = useState(false);
   const [showDoneMsg, setShowDoneMsg] = useState(false);
-  const [userAnswers, setUserAnswers] = useState([]);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [experienceGain, setExperienceGain] = useState(0);
 
   useEffect(() => {
     async function fetchQuiz() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/quiz`, {
-          credentials: 'include'
-        });
+        const res = await fetch(`${API_URL}/quiz`);
         const data = await res.json();
-        
-        if (data.alreadySolved) {
-          setAlreadySolved(true);
-        } else {
-          setQuestions(data.questions || []);
-        }
+        setQuestions(data[0]?.questions || []);
       } catch (err) {
-        console.error('Quiz yükleme hatası:', err);
         setQuestions([]);
       }
       setIsLoading(false);
@@ -51,7 +37,7 @@ export default function Quiz() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !showResult && timeLeft > 0 && !alreadySolved && questions.length > 0) {
+    if (!isLoading && !showResult && timeLeft > 0 && !alreadySolved) {
       const timer = setInterval(() => {
         setTimeLeft(prev => prev - 1);
       }, 1000);
@@ -59,22 +45,12 @@ export default function Quiz() {
     } else if (timeLeft === 0 && !showResult && !alreadySolved) {
       handleAnswer(null);
     }
-  }, [timeLeft, showResult, isLoading, alreadySolved, questions.length]);
+  }, [timeLeft, showResult, isLoading, alreadySolved]);
 
   const handleAnswer = (selectedIndex) => {
     setSelectedAnswer(selectedIndex);
-    
-    // Kullanıcının cevabını kaydet
-    const currentQ = questions[currentQuestion];
-    setUserAnswers(prev => [...prev, {
-      questionId: currentQ.id,
-      selectedAnswer: selectedIndex,
-      correctAnswer: currentQ.correctAnswer,
-      isCorrect: selectedIndex === currentQ.correctAnswer
-    }]);
-
     setTimeout(() => {
-      if (selectedIndex === currentQ.correctAnswer) {
+      if (selectedIndex === questions[currentQuestion]?.correctAnswer) {
         setScore(prev => prev + 1);
       }
       if (currentQuestion < questions.length - 1) {
@@ -82,58 +58,18 @@ export default function Quiz() {
         setSelectedAnswer(null);
         setTimeLeft(30);
       } else {
-        finishQuiz();
+        setShowResult(true);
+        setShowDoneMsg(true);
+        // Skoru backend'e kaydet
+        if (user) {
+          fetch(`${API_URL}/game/score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id, score }),
+          });
+        }
       }
     }, 1000);
-  };
-
-  const finishQuiz = async () => {
-    setShowResult(true);
-    setShowDoneMsg(true);
-    
-    // Skoru backend'e kaydet
-    if (user) {
-      try {
-        const res = await fetch(`${API_URL}/quiz/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ 
-            score: score, 
-            answers: userAnswers 
-          }),
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          setExperienceGain(data.experienceGain);
-        }
-      } catch (err) {
-        console.error('Skor kaydetme hatası:', err);
-      }
-    }
-  };
-
-  const fetchLeaderboard = async () => {
-    try {
-      const res = await fetch(`${API_URL}/quiz/leaderboard`);
-      const data = await res.json();
-      setLeaderboard(data.leaderboard);
-    } catch (err) {
-      console.error('Liderlik tablosu yükleme hatası:', err);
-    }
-  };
-
-  const fetchHistory = async () => {
-    try {
-      const res = await fetch(`${API_URL}/quiz/history`, {
-        credentials: 'include'
-      });
-      const data = await res.json();
-      setHistory(data.history);
-    } catch (err) {
-      console.error('Geçmiş yükleme hatası:', err);
-    }
   };
 
   const resetQuiz = () => {
@@ -143,15 +79,12 @@ export default function Quiz() {
     setSelectedAnswer(null);
     setTimeLeft(30);
     setShowDoneMsg(false);
-    setUserAnswers([]);
-    setExperienceGain(0);
   };
 
   // Quiz zaten çözülmüşse
   if (isLoading) {
     return <LoadingSpinner text="Yarışma hazırlanıyor..." />;
   }
-
   if (alreadySolved) {
     return (
       <ProtectedRoute>
@@ -160,31 +93,9 @@ export default function Quiz() {
             <div className="text-5xl mb-4">✅</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Günün sorularını zaten çözdün!</h1>
             <p className="text-gray-600 mb-4">Yarın yeni sorularla tekrar yarışabilirsin.</p>
-            <div className="flex items-center justify-center space-x-2 text-blue-600 mb-4">
+            <div className="flex items-center justify-center space-x-2 text-blue-600 mb-2">
               <Info className="h-5 w-5" />
               <span>Her gün 5 yeni soru seni bekliyor.</span>
-            </div>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => {
-                  setShowLeaderboard(true);
-                  fetchLeaderboard();
-                }}
-                className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                <Trophy className="h-4 w-4" />
-                <span>Liderlik Tablosu</span>
-              </button>
-              <button
-                onClick={() => {
-                  setShowHistory(true);
-                  fetchHistory();
-                }}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <History className="h-4 w-4" />
-                <span>Geçmişim</span>
-              </button>
             </div>
           </div>
         </div>
@@ -217,10 +128,10 @@ export default function Quiz() {
                 <div className="text-gray-600">Doğru Cevap</div>
               </div>
 
-              <div className="space-y-4 mb-6">
+              <div className="space-y-4">
                 <div className="flex items-center justify-center space-x-2 text-green-600">
                   <CheckCircle className="h-5 w-5" />
-                  <span>+{score * 10} XP kazandınız</span>
+                  <span>+{score * 3} puan kazandınız</span>
                 </div>
                 {score >= 3 && (
                   <div className="flex items-center justify-center space-x-2 text-yellow-600">
@@ -232,29 +143,12 @@ export default function Quiz() {
                   <Trophy className="h-5 w-5" />
                   <span>Günlük yarışma tamamlandı</span>
                 </div>
-              </div>
-
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={() => {
-                    setShowLeaderboard(true);
-                    fetchLeaderboard();
-                  }}
-                  className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <Trophy className="h-4 w-4" />
-                  <span>Liderlik Tablosu</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowHistory(true);
-                    fetchHistory();
-                  }}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <History className="h-4 w-4" />
-                  <span>Geçmişim</span>
-                </button>
+                {showDoneMsg && (
+                  <div className="flex items-center justify-center space-x-2 text-purple-700 font-semibold mt-4">
+                    <Info className="h-5 w-5" />
+                    <span>Günün sorularını çözdün! Yarınki soruları bekle.</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -263,34 +157,7 @@ export default function Quiz() {
     );
   }
 
-  if (!questions || questions.length === 0) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-xl">
-            <div className="text-5xl mb-4">❌</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Bugün için yarışma sorusu bulunamadı.</h1>
-            <p className="text-gray-600 mb-4">Lütfen daha sonra tekrar deneyin.</p>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
-  }
-
   const currentQ = questions[currentQuestion];
-  if (!currentQ || !currentQ.question || !Array.isArray(currentQ.options)) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-xl">
-            <div className="text-5xl mb-4">❌</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Soru verisi hatalı veya eksik.</h1>
-            <p className="text-gray-600 mb-4">Lütfen daha sonra tekrar deneyin.</p>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
-  }
 
   return (
     <ProtectedRoute>
@@ -324,19 +191,9 @@ export default function Quiz() {
 
           {/* Question Card */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                {currentQ.category}
-              </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                {currentQ.difficulty}
-              </span>
-            </div>
-            
             <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
               {currentQ.question}
             </h2>
-            
             <div className="space-y-4">
               {currentQ.options.map((option, index) => (
                 <button
@@ -370,7 +227,6 @@ export default function Quiz() {
                 </button>
               ))}
             </div>
-            
             {/* Score Display */}
             <div className="mt-8 text-center">
               <div className="inline-flex items-center space-x-4 bg-purple-100 rounded-full px-6 py-3">
@@ -380,83 +236,6 @@ export default function Quiz() {
             </div>
           </div>
         </div>
-
-        {/* Liderlik Tablosu Modal */}
-        {showLeaderboard && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Trophy className="h-6 w-6 mr-2 text-yellow-600" />
-                  Liderlik Tablosu
-                </h2>
-                <button
-                  onClick={() => setShowLeaderboard(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="space-y-3">
-                {leaderboard.map((user, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-sm font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl">{user.avatar || '👤'}</span>
-                        <span className="font-semibold">{user.first_name} {user.last_name}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-purple-600">{user.total_score} puan</div>
-                      <div className="text-sm text-gray-500">{user.total_quizzes} quiz</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Geçmiş Modal */}
-        {showHistory && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <History className="h-6 w-6 mr-2 text-blue-600" />
-                  Quiz Geçmişim
-                </h2>
-                <button
-                  onClick={() => setShowHistory(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="space-y-3">
-                {history.map((quiz, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-semibold">{new Date(quiz.date).toLocaleDateString('tr-TR')}</div>
-                        <div className="text-sm text-gray-500">{quiz.score}/5 doğru</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-blue-600">{quiz.score * 10} XP</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </ProtectedRoute>
   );

@@ -63,7 +63,7 @@ export default function Notes() {
       try {
         const res = await fetch(`${API_URL}/notes`);
         const data = await res.json();
-        setNotes(Array.isArray(data) ? data : []);
+        setNotes(data);
       } catch (err) {
         setNotes([]);
       }
@@ -105,10 +105,9 @@ export default function Notes() {
   }, [subjects]);
 
   const filteredNotes = notes.filter(note => {
-    const tags = Array.isArray(note.tags) ? note.tags : [];
     const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          note.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                         note.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesSubject = selectedSubject === 'all' || note.subject === selectedSubject;
     
@@ -433,17 +432,7 @@ export default function Notes() {
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span className="flex items-center">
                           <User className="h-4 w-4 mr-1" />
-                          <div className="flex flex-col">
-                            <span>{note.first_name && note.last_name
-                              ? `${note.first_name} ${note.last_name}`
-                              : note.author}</span>
-                            {note.author_level && (
-                              <div className="flex items-center space-x-1 text-xs text-gray-500">
-                                <span className="text-yellow-600">⭐</span>
-                                <span>Seviye {note.author_level}</span>
-                              </div>
-                            )}
-                          </div>
+                          {note.author}
                         </span>
                         <span className="flex items-center">
                           <Calendar className="h-4 w-4 mr-1" />
@@ -463,7 +452,7 @@ export default function Notes() {
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {(Array.isArray(note.tags) ? note.tags : []).map((tag, index) => (
+                    {note.tags.map((tag, index) => (
                       <span
                         key={index}
                         className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800"

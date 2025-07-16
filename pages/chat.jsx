@@ -51,7 +51,7 @@ export default function Chat() {
       // Send user info after connection
       newSocket.emit('userOnline', {
         id: user.id,
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        name: `${user.firstName} ${user.lastName}`,
         avatar: user.avatar || '👤',
         role: user.role || 'user',
         status: 'online'
@@ -219,14 +219,6 @@ export default function Chat() {
     }
   };
 
-  // Çevrimiçi kullanıcıları benzersiz ID'ye göre filtrele
-  const uniqueOnlineUsers = Object.values(
-    onlineUsers.reduce((acc, user) => {
-      acc[user.id] = user;
-      return acc;
-    }, {})
-  );
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -245,24 +237,16 @@ export default function Chat() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold flex items-center">
                   <Users className="mr-2" />
-                  Çevrimiçi ({uniqueOnlineUsers.length})
+                  Çevrimiçi ({onlineUsers.length})
                 </h2>
               </div>
               
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {uniqueOnlineUsers.map((user) => (
+                {onlineUsers.map((user) => (
                   <div key={user.id} className={`flex items-center justify-between p-2 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="flex items-center">
-                      <span className="mr-2">{user.avatar || '👤'}</span>
-                      <div className="flex flex-col">
-                        <span className="text-sm">{user.name || 'Kullanıcı'}</span>
-                        {user.level && (
-                          <div className="flex items-center space-x-1 text-xs text-gray-500">
-                            <span className="text-yellow-600">⭐</span>
-                            <span>Seviye {user.level}</span>
-                          </div>
-                        )}
-                      </div>
+                      <span className="mr-2">{user.avatar}</span>
+                      <span className="text-sm">{user.name}</span>
                       {user.role === 'admin' && <Crown className="ml-1 text-yellow-500" size={16} />}
                       {user.role === 'founder' && <Shield className="ml-1 text-purple-500" size={16} />}
                     </div>

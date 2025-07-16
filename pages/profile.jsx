@@ -16,7 +16,7 @@ export default function Profile() {
   const { isDarkMode, toggleDarkMode } = useTheme();
 
   // Gerçek kullanıcı verileri
-  const user = authUser || { firstName: 'Kullanıcı', lastName: '', email: 'ornek@email.com', avatar: '👨‍🎓', dailyLogins: [], recentActivity: [] };
+  const user = authUser || { name: 'Kullanıcı', email: 'ornek@email.com', avatar: '👨‍🎓', dailyLogins: [], recentActivity: [] };
 
   // Dinamik istatistikler
   const stats = {
@@ -72,27 +72,9 @@ export default function Profile() {
     }
   };
 
-  const handleAvatarChange = async (newAvatar) => {
-    try {
-      const res = await fetch('/api/auth/avatar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ avatar: newAvatar })
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        updateUser({ avatar: newAvatar });
-        setShowAvatarUpload(false);
-        alert('Avatar başarıyla güncellendi!');
-      } else {
-        alert('Avatar güncellenirken hata oluştu.');
-      }
-    } catch (error) {
-      console.error('Avatar güncelleme hatası:', error);
-      alert('Avatar güncellenirken hata oluştu.');
-    }
+  const handleAvatarChange = (newAvatar) => {
+    updateUser({ avatar: newAvatar });
+    setShowAvatarUpload(false);
   };
 
   const avatarOptions = ['👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻', '👨‍🔬', '👩‍🔬', '🧑‍🔬', '👨‍🏫', '👩‍🏫', '🧑‍🏫'];
@@ -141,67 +123,128 @@ export default function Profile() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Profile Header */}
           <div className={`bg-white text-gray-900 rounded-2xl shadow-sm p-8 mb-8`}>
-            <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 flex flex-col md:flex-row items-center md:items-start">
-              <div className="flex-shrink-0 mr-8 mb-6 md:mb-0">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
+              {/* Avatar and Basic Info */}
+              <div className="flex items-center space-x-6">
                 <div className="relative">
-                  <div className="w-32 h-32 rounded-full bg-purple-100 flex items-center justify-center text-6xl">
-                    {user.avatar || '👨‍🎓'}
+                  <div className="text-6xl cursor-pointer hover:opacity-80 transition-opacity duration-200" 
+                       onClick={() => setShowAvatarUpload(!showAvatarUpload)}>
+                    {user.avatar}
                   </div>
                   <button
-                    onClick={() => setShowAvatarUpload(true)}
-                    className="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors"
-                    title="Avatar Değiştir"
+                    onClick={() => setShowAvatarUpload(!showAvatarUpload)}
+                    className="absolute -bottom-2 -right-2 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors duration-200"
                   >
                     <Camera className="h-4 w-4" />
                   </button>
+                  {/* Avatar Upload Modal */}
+                  {showAvatarUpload && (
+                    <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 min-w-[200px]">
+                      <h3 className="text-sm font-medium text-gray-900 mb-3">Profil Fotoğrafı Seç</h3>
+                      <div className="grid grid-cols-4 gap-2">
+                        {avatarOptions.map((avatar, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleAvatarChange(avatar)}
+                            className="text-2xl p-2 rounded hover:bg-gray-100 transition-colors duration-200"
+                          >
+                            {avatar}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setShowAvatarUpload(false)}
+                        className="mt-3 w-full text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        İptal
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {/* Seviye göstergesi */}
-                {user?.level && (
-                  <div className="mt-4 text-center">
-                    <div className="flex items-center justify-center space-x-2 mb-2">
-                      <span className="text-yellow-600 text-2xl">⭐</span>
-                      <span className="font-bold text-lg">Seviye {user.level}</span>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center space-x-2">
+                    {isEditingName ? (
+                      <>
+                        <input
+                          type="text"
+                          value={newName}
+                          onChange={e => setNewName(e.target.value)}
+                          className="border border-gray-300 rounded px-2 py-1 text-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          maxLength={32}
+                          autoFocus
+                        />
+                        <button onClick={handleSaveName} className="ml-2 px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700">Kaydet</button>
+                        <button onClick={handleCancelEdit} className="ml-1 px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">İptal</button>
+                        {nameError && <span className="ml-2 text-red-600 text-sm">{nameError}</span>}
+                      </>
+                    ) : (
+                      <>
+                        <span>{user.name}</span>
+                        {user.id && (
+                          <span className="ml-2 flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded text-xs text-gray-600 select-all">
+                            <span>ID: {user.id}</span>
+                            <button onClick={handleCopyId} title="Kopyala" className="ml-1 p-1 hover:bg-gray-200 rounded">
+                              <Copy className="h-4 w-4" />
+                            </button>
+                            {copySuccess && <span className="ml-1 text-green-600 font-semibold">Kopyalandı!</span>}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </h1>
+                  {/* Kalan isim değiştirme hakkı */}
+                  {!isEditingName && (
+                    <div className="text-xs text-gray-500 mb-1">İsim değiştirme hakkı: {nameChangeLeft} / {nameChangeLimit}</div>
+                  )}
+                  <p className="text-gray-600 mb-2">{user.email}</p>
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <span className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      {user.joinDate ? new Date(user.joinDate).toLocaleDateString('tr-TR') : '-'} tarihinden beri üye
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Level and Points */}
+              <div className="flex-1">
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <Trophy className="h-6 w-6 text-yellow-600" />
+                      <span className="text-xl font-bold text-gray-900">Seviye {user.level || 1}</span>
                     </div>
-                    <div className="text-sm text-gray-600 mb-2">
-                      {user.experience || 0} / {user.nextLevelExp || 100} XP
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-purple-600">{user.totalPoints || stats.streakDays * 100}</div>
+                      <div className="text-sm text-gray-600">Toplam Puan</div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                  </div>
+                  {/* Progress Bar */}
+                  <div className="mb-2">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                      <span>{user.experience || stats.streakDays * 100} XP</span>
+                      <span>{user.nextLevelExp || 1000} XP</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
                       <div 
-                        className="bg-gradient-to-r from-yellow-400 to-orange-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${user.levelProgress || 0}%` }}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+                        style={{ width: `${getLevelProgress()}%` }}
                       ></div>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center space-x-2">
-                  <span>{user.firstName} {user.lastName}</span>
-                </h1>
-                <p className="text-gray-600 mb-2">{user.email}</p>
-                <p className="text-gray-500 mb-2">Üyelik tarihi: {user.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR') : '-'}</p>
-                {/* Son aktiviteler veya günlük girişler */}
-                {user.dailyLogins && user.dailyLogins.length > 0 && (
-                  <div className="mt-2">
-                    <span className="font-semibold text-gray-700">Son Girişler:</span>
-                    <ul className="list-disc ml-6 text-gray-500 text-sm">
-                      {user.dailyLogins.slice(-5).map((d, i) => (
-                        <li key={i}>{new Date(d).toLocaleDateString('tr-TR')}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+
+              {/* Edit Button */}
+              <button
+                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                onClick={handleEditName}
+                disabled={nameChangeLeft <= 0}
+              >
+                <Edit className="h-4 w-4" />
+                <span>Düzenle</span>
+              </button>
             </div>
-            {/* Edit Button */}
-            <button
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-              onClick={handleEditName}
-              disabled={nameChangeLeft <= 0}
-            >
-              <Edit className="h-4 w-4" />
-              <span>Düzenle</span>
-            </button>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
@@ -374,47 +417,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-
-      {/* Avatar Seçim Modal */}
-      {showAvatarUpload && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                <Camera className="h-6 w-6 mr-2 text-purple-600" />
-                Avatar Seç
-              </h2>
-              <button
-                onClick={() => setShowAvatarUpload(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-4 gap-4 mb-6">
-              {avatarOptions.map((avatar, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleAvatarChange(avatar)}
-                  className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl hover:scale-110 transition-all duration-200 ${
-                    user.avatar === avatar 
-                      ? 'bg-purple-100 border-2 border-purple-500' 
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  }`}
-                  title={`Avatar ${index + 1}`}
-                >
-                  {avatar}
-                </button>
-              ))}
-            </div>
-            
-            <div className="text-center text-sm text-gray-600">
-              Avatar'ınızı seçtikten sonra tüm sayfalarda aynı avatar görünecektir.
-            </div>
-          </div>
-        </div>
-      )}
     </ProtectedRoute>
   );
 } 
