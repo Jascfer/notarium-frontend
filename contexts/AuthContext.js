@@ -39,7 +39,12 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         console.log('User data received:', data);
-        setUser(data.user);
+        // Kullanıcıya name alanı ekle
+        let user = data.user;
+        if (user && !user.name) {
+          user = { ...user, name: ((user.firstName || '') + ' ' + (user.lastName || '')).trim() };
+        }
+        setUser(user);
         setError(null);
       } else {
         const errText = await res.text();
@@ -108,7 +113,11 @@ export function AuthProvider({ children }) {
       console.log('Login successful:', data);
       
       // User state'ini hemen güncelle
-      setUser(data.user);
+      let user = data.user;
+      if (user && !user.name) {
+        user = { ...user, name: ((user.firstName || '') + ' ' + (user.lastName || '')).trim() };
+      }
+      setUser(user);
       setError(null);
       
       // Session'ı localStorage'a kaydet (opsiyonel)

@@ -20,6 +20,7 @@ export default function Chat() {
   const [remainingMute, setRemainingMute] = useState(0);
   const { isDarkMode } = useTheme();
   const [socket, setSocket] = useState(null);
+  const MIN_MUTE_MS = 2 * 60 * 60 * 1000; // 2 saat
 
   const channels = [
     { id: 'ders-yardim', name: 'Ders Yardım Odası', icon: '📚', color: 'purple' },
@@ -145,8 +146,9 @@ export default function Chat() {
     const now = Date.now();
     const recent = msgTimestamps.filter(ts => now - ts < 5000); // 5 sn içinde
     if (recent.length >= 2) {
-      setMuteUntil(now + 30000); // 30 sn mute
-      setMuteReason('Spam nedeniyle geçici olarak susturuldunuz.');
+      // En az 2 saat mute
+      setMuteUntil(Math.max(now + 30000, now + MIN_MUTE_MS));
+      setMuteReason('Spam nedeniyle geçici olarak susturuldunuz. (En az 2 saat)');
       return true;
     }
     return false;
@@ -157,7 +159,13 @@ export default function Chat() {
       'amk','aq','orospu','sik','piç','yarrak','ananı','anan','göt','amına','amcık','pezevenk','kahpe','mal','salak','gerizekalı','aptal','sürtük','ibne','ibine','oç','mk','sg','siktir','bok','sikik','sikiyim','sikeyim','amq','amk','aq','yavşak','şerefsiz','şırfıntı','dallama','dangalak','dingil','döl','embesil','gavat','godoş','hıyar','kaltak','kancık','kıç','koduğum','koyayım','koyim','kro','lavuk','meme','orospu','pezevenk','puşt','sik','sikik','sikim','siktir','sürtük','taşak','yarak','yarrak','yavşak','yobaz','zübük'
     ];
     const lower = msg.toLowerCase();
-    return badwords.some(word => lower.includes(word));
+    if (badwords.some(word => lower.includes(word))) {
+      // En az 2 saat mute
+      setMuteUntil(Math.max(Date.now() + 120000, Date.now() + MIN_MUTE_MS));
+      setMuteReason('Küfür nedeniyle geçici olarak susturuldunuz. (En az 2 saat)');
+      return true;
+    }
+    return false;
   };
 
   const handleSendMessage = (e) => {
@@ -166,11 +174,7 @@ export default function Chat() {
     if (newMessage.trim() && user && socket) {
       const now = Date.now();
       if (checkSpam()) return;
-      if (checkBadWords(newMessage)) {
-        setMuteUntil(now + 120000);
-        setMuteReason('Küfür nedeniyle geçici olarak susturuldunuz.');
-        return;
-      }
+      if (checkBadWords(newMessage)) return;
       setMsgTimestamps(prev => [...prev.filter(ts => now - ts < 5000), now]);
       const msg = {
         id: Date.now(),
@@ -242,25 +246,25 @@ export default function Chat() {
               </div>
               
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {onlineUsers.map((user) => (
-                  <div key={user.id} className={`flex items-center justify-between p-2 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                {onlineUsers.map((onlineUser) => (
+                  <div key={onlineUser.id} className={`flex items-center justify-between p-2 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <div className="flex items-center">
-                      <span className="mr-2">{user.avatar}</span>
-                      <span className="text-sm">{user.name}</span>
-                      {user.role === 'admin' && <Crown className="ml-1 text-yellow-500" size={16} />}
-                      {user.role === 'founder' && <Shield className="ml-1 text-purple-500" size={16} />}
+                      <span className="mr-2">{onlineUser.avatar}</span>
+                      <span className="text-sm">{onlineUser.name}</span>
+                      {onlineUser.role === 'admin' && <Crown className="ml-1 text-yellow-500" size={16} />}
+                      {onlineUser.role === 'founder' && <Shield className="ml-1 text-purple-500" size={16} />}
                     </div>
-                    {isAdmin && user.id !== user?.id && (
+                    {isAdmin && onlineUser.id !== user?.id && (
                       <div className="flex space-x-1">
                         <button
-                          onClick={() => handleKick(user.id)}
+                          onClick={() => handleKick(onlineUser.id)}
                           className="text-red-500 hover:text-red-700"
                           title="Uzaklaştır"
                         >
                           <UserMinus size={16} />
                         </button>
                         <button
-                          onClick={() => handleBan(user.id)}
+                          onClick={() => handleBan(onlineUser.id)}
                           className="text-red-700 hover:text-red-900"
                           title="Banla"
                         >
