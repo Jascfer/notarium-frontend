@@ -22,9 +22,12 @@ export function AuthProvider({ children }) {
 
   const fetchUser = async () => {
     try {
-      console.log('Fetching user from:', `${API_URL}/auth/me`);
+      // Güvenli base url birleştirme
+      let base = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+      const url = `${base}/auth/me`;
+      console.log('Fetching user from:', url);
       
-      const res = await fetch(`${API_URL}/auth/me`, { 
+      const res = await fetch(url, { 
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +42,8 @@ export function AuthProvider({ children }) {
         setUser(data.user);
         setError(null);
       } else {
-        console.log('Auth/me failed:', res.status, res.statusText);
+        const errText = await res.text();
+        console.log('Auth/me failed:', res.status, res.statusText, errText);
         setUser(null);
         setError('Authentication failed');
       }
