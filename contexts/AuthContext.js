@@ -102,6 +102,8 @@ export function AuthProvider({ children }) {
       }
       
       console.log('Login successful:', data);
+      
+      // User state'ini hemen güncelle
       setUser(data.user);
       setError(null);
       
@@ -109,6 +111,11 @@ export function AuthProvider({ children }) {
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
+      
+      // User state'ini tekrar kontrol et
+      setTimeout(() => {
+        console.log('Current user state after login:', user);
+      }, 100);
       
       return { success: true };
     } catch (err) {
