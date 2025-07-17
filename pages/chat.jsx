@@ -231,9 +231,9 @@ export default function Chat() {
     <ProtectedRoute>
       <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
         <div className="container mx-auto p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-screen">
-            {/* Sidebar */}
-            <div className={`lg:col-span-1 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-4`}>
+          <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 min-h-screen">
+            {/* Sidebar - Mobilde üstte, desktopta solda */}
+            <div className={`mb-4 lg:mb-0 lg:col-span-1 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-4`}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold flex items-center">
                   <Users className="mr-2" />
@@ -274,7 +274,7 @@ export default function Chat() {
             </div>
 
             {/* Main Chat Area */}
-            <div className="lg:col-span-3 flex flex-col">
+            <div className="flex-1 flex flex-col lg:col-span-3">
               {/* Channel Header */}
               <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-lg p-4 mb-4`}>
                 <div className="flex items-center justify-between">

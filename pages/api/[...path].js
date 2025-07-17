@@ -37,10 +37,10 @@ export default async function handler(req, res) {
     res.status(response.status);
     
     // Forward cookies from backend
-    const setCookieHeader = response.headers.get('set-cookie');
-    if (setCookieHeader) {
-      console.log('Setting cookie header:', setCookieHeader);
-      res.setHeader('Set-Cookie', setCookieHeader);
+    const setCookie = response.headers.raw()['set-cookie'];
+    if (setCookie) {
+      console.log('Setting cookie header:', setCookie);
+      res.setHeader('Set-Cookie', setCookie);
     }
     
     res.json(data);
