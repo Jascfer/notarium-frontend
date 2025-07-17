@@ -11,14 +11,20 @@ export default async function handler(req, res) {
     console.log('Request headers:', req.headers);
     console.log('Request body:', req.body);
     
+    // Prepare headers and manually forward cookie
+    const headers = {
+      'Content-Type': 'application/json',
+      ...req.headers,
+    };
+    if (req.headers.cookie) {
+      headers['Cookie'] = req.headers.cookie;
+    }
+
     const response = await fetch(targetUrl, {
       method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...req.headers,
-      },
-      credentials: 'include', // Add this to forward cookies
+      headers,
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+      // credentials: 'include', // Not needed in server-side fetch
     });
     
     const data = await response.json();
