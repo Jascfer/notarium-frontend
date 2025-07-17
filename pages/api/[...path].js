@@ -17,6 +17,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         ...req.headers,
       },
+      credentials: 'include', // Add this to forward cookies
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
     });
     
