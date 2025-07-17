@@ -1,7 +1,8 @@
+// DİKKAT: Bu dosyada backendUrl sabittir, environment variable ile değiştirilmemelidir. Detay için RAILWAY_ENV_SETUP.md'ye bakınız.
 // Next.js API route to proxy all requests to backend
 export default async function handler(req, res) {
   const { path } = req.query;
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notarium-backend-production.up.railway.app';
+  const backendUrl = 'https://notarium-backend-production.up.railway.app';
   
   // Construct the backend URL
   const targetUrl = `${backendUrl}/${path.join('/')}`;
