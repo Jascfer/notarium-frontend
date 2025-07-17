@@ -34,7 +34,27 @@ export default async function handler(req, res) {
       credentials: 'include', // <-- Bu eksikti! Cookieleri backende gönder
     });
     
-    const data = await response.json();
+    // Handle non-JSON responses gracefully
+    let data;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {     try {
+        data = await response.json();
+      } catch (error) {
+        console.error('JSON parse error:', error);
+        res.status(500).json({ error: 'Invalid JSON response from backend' });
+        return;
+      }
+    } else {     // Handle non-JSON responses (like HTML error pages)
+      const text = await response.text();
+      console.error('Non-JSON response from backend:', text);
+      res.status(response.status).json({ 
+        error: 'Backend returned non-JSON response', 
+        status: response.status,
+        details: text.substring(0, 200) // First 200rs
+      });
+      return;
+    }
     
     console.log('Backend response status:', response.status);
     console.log('Backend response data:', data);
