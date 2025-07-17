@@ -13,6 +13,7 @@ export default function Navbar() {
     { icon: User, label: 'Profil', href: '/profile', protected: true },
     { icon: MessageCircle, label: 'Sohbet', href: '/chat', protected: true },
     { icon: Trophy, label: 'Yarışma', href: '/quiz', protected: true },
+    { icon: Settings, label: 'Destek', href: '/support', protected: true },
   ];
 
   const handleLogout = () => {
