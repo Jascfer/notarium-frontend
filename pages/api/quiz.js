@@ -1,6 +1,5 @@
-// DİKKAT: Bu dosya, /api/notes isteklerini backend'e proxy eder.
 export default async function handler(req, res) {
-  const backendUrl = 'https://notarium-backend-production.up.railway.app/notes';
+  const backendUrl = 'https://notarium-backend-production.up.railway.app/quiz';
   const response = await fetch(backendUrl, {
     method: req.method,
     headers: {
