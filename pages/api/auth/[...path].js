@@ -31,6 +31,7 @@ export default async function handler(req, res) {
       method: req.method,
       headers,
       body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+      credentials: 'include', // <-- Bu eksikti! Cookieleri backende gönder
     });
     
     const data = await response.json();
